@@ -26,6 +26,8 @@ class User extends Authenticatable
         'address',         // Pastikan ini ada
         'profile_image',   // Pastikan ini ada
         'is_active',
+        'email_verified_at',
+        'seller_data', // Add this
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'seller_data' => 'array', // Add this
         ];
     }
 
@@ -97,5 +100,50 @@ class User extends Authenticatable
     public function hasAnyRole(array $roles): bool
     {
         return in_array($this->role, $roles);
+    }
+
+    /**
+     * Get all seller requests for the user.
+     */
+    public function sellerRequests()
+    {
+        return $this->hasMany(SellerRequest::class);
+    }
+
+    /**
+     * Get the latest seller request for the user.
+     */
+    public function latestSellerRequest()
+    {
+        return $this->hasOne(SellerRequest::class)->latest();
+    }
+
+    /**
+     * Check if user can become seller
+     */
+    public function canRequestSeller(): bool
+    {
+        return SellerRequest::canUserRequest($this->id);
+    }
+
+    /**
+     * Check if user has approved seller request
+     */
+    public function hasApprovedSellerRequest(): bool
+    {
+        return $this->sellerRequests()
+            ->where('status', 'approved')
+            ->exists();
+    }
+
+    // Helper methods for seller
+    public function isApprovedSeller(): bool
+    {
+        return $this->role === 'seller' && $this->is_active;
+    }
+
+    public function getSellerInfo(): ?array
+    {
+        return $this->seller_data;
     }
 }

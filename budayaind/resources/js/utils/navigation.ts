@@ -1,22 +1,8 @@
 import { type NavItem } from '@/types';
-import { FileText, LayoutGrid, Settings, ShoppingCart, User, Users } from 'lucide-react';
+import { FileText, LayoutGrid, Settings, ShoppingCart, User, UserCheck, UserPlus, Users } from 'lucide-react';
 
 export const getNavigationByRole = (role: string): NavItem[] => {
     switch (role.toLowerCase()) {
-        case 'customer':
-            return [
-                {
-                    title: 'Profile',
-                    href: '/customer/profile',
-                    icon: User,
-                },
-                {
-                    title: 'My Orders',
-                    href: '/customer/orders',
-                    icon: ShoppingCart,
-                },
-            ];
-
         case 'admin':
             return [
                 {
@@ -30,6 +16,11 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     icon: Users,
                 },
                 {
+                    title: 'Seller Requests',
+                    href: '/admin/seller-requests',
+                    icon: UserCheck,
+                },
+                {
                     title: 'Reports',
                     href: '/admin/reports',
                     icon: FileText,
@@ -41,32 +32,55 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                 },
             ];
 
-        case 'manager':
+        case 'customer':
+            return [
+                {
+                    title: 'Profile',
+                    href: '/customer/profile',
+                    icon: User,
+                },
+                {
+                    title: 'Request Seller',
+                    href: '/customer/request-seller',
+                    icon: UserPlus,
+                },
+                {
+                    title: 'My Orders',
+                    href: '/customer/orders',
+                    icon: ShoppingCart,
+                },
+                {
+                    title: 'Settings',
+                    href: '/customer/settings',
+                    icon: Settings,
+                },
+            ];
+
+        case 'seller':
             return [
                 {
                     title: 'Dashboard',
-                    href: '/manager/dashboard',
+                    href: '/seller/dashboard',
                     icon: LayoutGrid,
                 },
                 {
-                    title: 'Team',
-                    href: '/manager/team',
-                    icon: Users,
+                    title: 'Products',
+                    href: '/seller/products',
+                    icon: ShoppingCart,
                 },
                 {
-                    title: 'Reports',
-                    href: '/manager/reports',
+                    title: 'Orders',
+                    href: '/seller/orders',
                     icon: FileText,
+                },
+                {
+                    title: 'Settings',
+                    href: '/seller/settings',
+                    icon: Settings,
                 },
             ];
 
         default:
-            return [
-                {
-                    title: 'Dashboard',
-                    href: '/dashboard',
-                    icon: LayoutGrid,
-                },
-            ];
+            return [];
     }
 };

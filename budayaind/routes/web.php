@@ -19,9 +19,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Customer Routes
 Route::middleware(['auth', 'verified', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile.index');
-    Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('profile.update'); // Ubah ke POST
+    Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('profile.update');
 
-    // Request Seller routes
+    // Request Seller routes - NEW FLOW
+    Route::get('/request-seller-requirements', [RequestSellerController::class, 'requirements'])->name('request-seller.requirements');
     Route::get('/request-seller', [RequestSellerController::class, 'index'])->name('request-seller.index');
     Route::post('/request-seller', [RequestSellerController::class, 'store'])->name('request-seller.store');
     Route::get('/request-seller/{sellerRequest}', [RequestSellerController::class, 'show'])->name('request-seller.show');

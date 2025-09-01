@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { SharedData, type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState, FormEvent, useEffect } from 'react';
 import {
   FiUser, FiMail, FiLock, FiPhone, FiMapPin, FiFileText,
@@ -358,6 +358,16 @@ export default function RequestSeller({ user, existingRequest, canRequest }: Pro
     );
   }
 
+  // Add useEffect untuk check session/requirements
+  useEffect(() => {
+    // Optional: Check if user came from requirements page
+    const hasAcceptedRequirements = sessionStorage.getItem('seller_requirements_accepted');
+    
+    if (!hasAcceptedRequirements) {
+      router.get('/customer/request-seller-requirements');
+    }
+  }, []);
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Request Seller" />
@@ -510,12 +520,12 @@ export default function RequestSeller({ user, existingRequest, canRequest }: Pro
                       value={data.password_tempat_confirmation} // Update ini
                       onChange={(e) => setData('password_tempat_confirmation', e.target.value)} // Update ini
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 pl-10 pr-10 bg-white dark:bg-sidebar text-neutral-900 dark:text-neutral-100 ${errors.password_tempat_confirmation // Update ini
+                        ? 'border-red-300 dark:border-red-700'
+                        : !passwordMatch && data.password_tempat_confirmation // Update ini
                           ? 'border-red-300 dark:border-red-700'
-                          : !passwordMatch && data.password_tempat_confirmation // Update ini
-                            ? 'border-red-300 dark:border-red-700'
-                            : passwordMatch && data.password_tempat_confirmation // Update ini
-                              ? 'border-green-300 dark:border-green-700 focus:ring-green-500'
-                              : 'border-sidebar-border focus:ring-blue-500'
+                          : passwordMatch && data.password_tempat_confirmation // Update ini
+                            ? 'border-green-300 dark:border-green-700 focus:ring-green-500'
+                            : 'border-sidebar-border focus:ring-blue-500'
                         }`}
                       placeholder="Ulangi password"
                       required

@@ -41,7 +41,7 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                 },
                 {
                     title: 'Request Seller',
-                    href: '/customer/request-seller',
+                    href: '/customer/request-seller-requirements',
                     icon: UserPlus,
                 },
                 {

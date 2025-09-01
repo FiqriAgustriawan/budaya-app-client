@@ -16,6 +16,15 @@ class RequestSellerController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        
+        // Check if user came from requirements page (optional protection)
+        $referrer = $request->headers->get('referer');
+        if (!str_contains($referrer, 'request-seller-requirements') && !$request->session()->has('seller_requirements_accepted')) {
+            return redirect()->route('customer.request-seller.requirements');
+        }
+        
+        // Set session flag
+        $request->session()->put('seller_requirements_accepted', true);
 
         // Check if user already has a request
         $existingRequest = SellerRequest::where('user_id', $user->id)->first();
@@ -131,5 +140,28 @@ class RequestSellerController extends Controller
                 'general' => 'Gagal mengirim request. Silakan coba lagi.'
             ])->withInput();
         }
+    }
+    public function requirements(Request $request)
+    {
+        $user = $request->user();
+        
+        // Check if user already has approved/pending request
+        $existingRequest = SellerRequest::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+        if ($existingRequest) {
+            return redirect()->route('customer.request-seller.index');
+        }
+
+        return Inertia::render('Customer/SellerRequirements', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'address' => $user->address,
+            ]
+        ]);
     }
 }

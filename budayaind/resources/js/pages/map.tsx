@@ -48,7 +48,7 @@ const culturalSites = [
         name: "Batik Yogyakarta",
         province: "DI Yogyakarta",
         category: "Kerajinan",
-        coordinates: { lat: -7.7956, lng: 110.3695 },
+        coordinates: { lat: -7.7956, lng: 112.3695 },
         description: "Seni batik tradisional dengan motif khas Yogyakarta.",
         image: "/images/batik-yogya.jpg",
         articles: 20,

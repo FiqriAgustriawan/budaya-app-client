@@ -16,6 +16,7 @@ export interface NavGroup {
 }
 
 export interface NavItem {
+    subItems: any;
     title: string;
     href: string;
     icon?: LucideIcon | null;
@@ -41,3 +42,13 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+// ...existing types...
+
+export interface NavItem {
+    title: string;
+    href: string;
+    icon: React.ComponentType<any>;
+    subItems?: NavItem[]; // Add this for sub-navigation
+}
+
+// ...existing types...

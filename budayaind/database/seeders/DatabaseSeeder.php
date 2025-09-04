@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Order;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -14,6 +16,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
+            TicketSeeder::class,
+            OrderSeeder::class,
         ]);
     }
 }

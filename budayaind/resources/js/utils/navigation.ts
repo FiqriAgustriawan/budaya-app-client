@@ -1,5 +1,19 @@
 import { type NavItem } from '@/types';
-import { FileText, LayoutGrid, Settings, ShoppingCart, User, UserCheck, UserPlus, Users } from 'lucide-react';
+import {
+    DollarSign,
+    FileText,
+    Heart,
+    LayoutGrid,
+    Package,
+    Search,
+    Settings,
+    ShoppingCart,
+    Ticket,
+    User,
+    UserCheck,
+    Users,
+    Wallet,
+} from 'lucide-react';
 
 export const getNavigationByRole = (role: string): NavItem[] => {
     switch (role.toLowerCase()) {
@@ -7,7 +21,7 @@ export const getNavigationByRole = (role: string): NavItem[] => {
             return [
                 {
                     title: 'Dashboard',
-                    href: '/admin/dashboard',
+                    href: '/dashboard',
                     icon: LayoutGrid,
                 },
                 {
@@ -21,6 +35,11 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     icon: UserCheck,
                 },
                 {
+                    title: 'Withdrawals',
+                    href: '/admin/withdrawals',
+                    icon: Wallet,
+                },
+                {
                     title: 'Reports',
                     href: '/admin/reports',
                     icon: FileText,
@@ -28,30 +47,6 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                 {
                     title: 'Settings',
                     href: '/admin/settings',
-                    icon: Settings,
-                },
-            ];
-
-        case 'customer':
-            return [
-                {
-                    title: 'Profile',
-                    href: '/customer/profile',
-                    icon: User,
-                },
-                {
-                    title: 'Request Seller',
-                    href: '/customer/request-seller-requirements',
-                    icon: UserPlus,
-                },
-                {
-                    title: 'My Orders',
-                    href: '/customer/orders',
-                    icon: ShoppingCart,
-                },
-                {
-                    title: 'Settings',
-                    href: '/customer/settings',
                     icon: Settings,
                 },
             ];
@@ -64,23 +59,50 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     icon: LayoutGrid,
                 },
                 {
-                    title: 'Products',
-                    href: '/seller/products',
-                    icon: ShoppingCart,
+                    title: 'Kelola Tiket',
+                    href: '/seller/tickets',
+                    icon: Ticket,
                 },
                 {
                     title: 'Orders',
                     href: '/seller/orders',
-                    icon: FileText,
+                    icon: Package,
                 },
                 {
-                    title: 'Settings',
-                    href: '/seller/settings',
-                    icon: Settings,
+                    title: 'Earnings',
+                    href: '/seller/earnings',
+                    icon: DollarSign,
                 },
             ];
 
+        case 'customer':
         default:
-            return [];
+            return [
+                {
+                    title: 'Jelajahi Tiket',
+                    href: '/tickets',
+                    icon: Search,
+                },
+                {
+                    title: 'Keranjang',
+                    href: '/customer/cart',
+                    icon: ShoppingCart,
+                },
+                {
+                    title: 'Pesanan Saya',
+                    href: '/customer/orders',
+                    icon: Package,
+                },
+                {
+                    title: 'Favorit',
+                    href: '/customer/favorites',
+                    icon: Heart,
+                },
+                {
+                    title: 'Profil',
+                    href: '/customer/profile',
+                    icon: User,
+                },
+            ];
     }
 };

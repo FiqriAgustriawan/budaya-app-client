@@ -1,81 +1,86 @@
-import React from 'react';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
+"use client";
+
+import { Moon, Sun } from "lucide-react";
+import { useAppearance } from "@/hooks/use-appearance";
+import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface ThemeToggleProps {
-    className?: string;
-    size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export function ThemeToggle({ className = '', size = 'md' }: ThemeToggleProps) {
-    const { theme, toggleTheme } = useTheme();
+export function ThemeToggle({
+  className,
+  size = 'md',
+  ...props
+}: ThemeToggleProps) {
+  const { appearance, updateAppearance } = useAppearance();
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
-    const sizeClasses = {
-        sm: 'w-8 h-8',
-        md: 'w-10 h-10',
-        lg: 'w-12 h-12'
-    };
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-9 w-9',
+    lg: 'h-10 w-10'
+  };
 
-    const iconSizes = {
-        sm: 'w-4 h-4',
-        md: 'w-5 h-5',
-        lg: 'w-6 h-6'
-    };
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-[1.2rem] w-[1.2rem]',
+    lg: 'h-6 w-6'
+  };
 
-    return (
-        <button
-            onClick={toggleTheme}
-            className={`
-                relative ${sizeClasses[size]} rounded-xl transition-all duration-300 group overflow-hidden
-                ${theme === 'dark'
-                    ? 'bg-gray-800/50 border border-gray-600/50 hover:bg-gray-700/50 hover:border-gray-500/70'
-                    : 'bg-white/80 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                }
-                backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105
-                ${className}
-            `}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-            {/* Background glow effect */}
-            <div className={`
-                absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                ${theme === 'dark'
-                    ? 'bg-gradient-to-r from-[#a4773e]/10 to-cyan-500/10'
-                    : 'bg-gradient-to-r from-[#a4773e]/10 to-blue-500/10'
-                }
-            `}></div>
+  // Determine if current theme is dark
+  useEffect(() => {
+    const isDark = appearance === 'dark' ||
+      (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDarkMode(isDark);
+  }, [appearance]);
 
-            {/* Icon container */}
-            <div className="relative flex items-center justify-center w-full h-full">
-                {theme === 'dark' ? (
-                    <Sun className={`
-                        ${iconSizes[size]} text-[#a4773e] group-hover:text-[#d4a574]
-                        transition-all duration-300 group-hover:rotate-180
-                    `} />
-                ) : (
-                    <Moon className={`
-                        ${iconSizes[size]} text-gray-600 group-hover:text-[#a4773e]
-                        transition-all duration-300 group-hover:rotate-12
-                    `} />
-                )}
-            </div>
+  // Listen for system theme changes when using system mode
+  useEffect(() => {
+    if (appearance !== 'system') return;
 
-            {/* Tooltip */}
-            <div className={`
-                absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium
-                rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none
-                ${theme === 'dark'
-                    ? 'bg-gray-800 text-gray-200 border border-gray-600'
-                    : 'bg-gray-900 text-gray-100 border border-gray-700'
-                }
-                backdrop-blur-sm whitespace-nowrap z-50
-            `}>
-                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-                <div className={`
-                    absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent
-                    ${theme === 'dark' ? 'border-t-gray-800' : 'border-t-gray-900'}
-                `}></div>
-            </div>
-        </button>
-    );
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => setIsDarkMode(mediaQuery.matches);
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [appearance]);
+
+  const toggleTheme = () => {
+    // Toggle between light and dark (skip system for this simple toggle)
+    const newTheme = isDarkMode ? 'light' : 'dark';
+    updateAppearance(newTheme);
+  };
+
+  return (
+    <button
+      className={cn(
+        "relative flex items-center justify-center rounded-md border border-input bg-background transition-colors hover:bg-accent hover:text-accent-foreground",
+        sizeClasses[size],
+        className
+      )}
+      onClick={toggleTheme}
+      aria-label="Toggle theme"
+      {...props}
+    >
+      <div className={cn("relative", iconSizes[size])}>
+        <Sun
+          className={cn(
+            "absolute rotate-0 scale-100 transition-all",
+            iconSizes[size],
+            isDarkMode ? "-rotate-90 scale-0" : "rotate-0 scale-100"
+          )}
+        />
+        <Moon
+          className={cn(
+            "absolute rotate-90 scale-0 transition-all",
+            iconSizes[size],
+            isDarkMode ? "rotate-0 scale-100" : "rotate-90 scale-0"
+          )}
+        />
+      </div>
+    </button>
+  );
 }

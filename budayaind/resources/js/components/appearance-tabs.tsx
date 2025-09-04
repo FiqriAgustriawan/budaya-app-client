@@ -2,10 +2,25 @@ import { Appearance, useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 import { LucideIcon, Monitor, Moon, Sun } from 'lucide-react';
 import { HTMLAttributes } from 'react';
+import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 
-export default function AppearanceToggleTab({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
+interface AppearanceToggleTabProps extends HTMLAttributes<HTMLDivElement> {
+    variant?: 'tabs' | 'toggle';
+}
+
+export default function AppearanceToggleTab({
+    className = '',
+    variant = 'tabs',
+    ...props
+}: AppearanceToggleTabProps) {
     const { appearance, updateAppearance } = useAppearance();
 
+    // If variant is 'toggle', render the AnimatedThemeToggler
+    if (variant === 'toggle') {
+        return <AnimatedThemeToggler className={className} />;
+    }
+
+    // Default tabs variant
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
         { value: 'light', icon: Sun, label: 'Light' },
         { value: 'dark', icon: Moon, label: 'Dark' },

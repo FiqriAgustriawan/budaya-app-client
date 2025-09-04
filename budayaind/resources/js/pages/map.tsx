@@ -1,8 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, MapPin, Search, Filter, ZoomIn, ZoomOut, RotateCcw, Info, Camera, BookOpen } from 'lucide-react';
-import { useState } from 'react';
-import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { ArrowLeft, MapPin, Search, Filter, Info, Camera, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAppearance } from '@/hooks/use-appearance';
+import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { InteractiveMap } from '@/components/InteractiveMap';
 
 // Sample data untuk demo dengan koordinat yang disesuaikan dengan peta baru
@@ -119,15 +119,35 @@ const provinces = [
 const categories = ["Semua Kategori", "Candi", "Tarian", "Arsitektur", "Kerajinan", "Musik", "Kuliner", "Upacara", "Pakaian", "Seni Rupa"];
 
 function MapContent() {
-    const { theme } = useTheme();
+    const { appearance } = useAppearance();
+    const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedSite, setSelectedSite] = useState<typeof culturalSites[0] | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedProvince, setSelectedProvince] = useState('Semua Provinsi');
     const [selectedCategory, setSelectedCategory] = useState('Semua Kategori');
     const [showFilters, setShowFilters] = useState(false);
-    const [zoomLevel, setZoomLevel] = useState(5);
     const [showStats, setShowStats] = useState(true);
     const [showTutorial, setShowTutorial] = useState(false);
+
+    useEffect(() => {
+        const updateTheme = () => {
+            const newIsDarkMode = appearance === 'dark' ||
+                (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            setIsDarkMode(newIsDarkMode);
+        };
+
+        updateTheme();
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemChange = () => {
+            if (appearance === 'system') {
+                updateTheme();
+            }
+        };
+
+        mediaQuery.addEventListener('change', handleSystemChange);
+        return () => mediaQuery.removeEventListener('change', handleSystemChange);
+    }, [appearance]);
 
     // Filter sites based on search and filters
     const filteredSites = culturalSites.filter(site => {
@@ -141,12 +161,6 @@ function MapContent() {
 
     const handleSiteSelect = (site: typeof culturalSites[0]) => {
         setSelectedSite(site);
-        setZoomLevel(10);
-    };
-
-    const resetMapView = () => {
-        setZoomLevel(5);
-        setSelectedSite(null);
     };
 
     return (
@@ -158,11 +172,7 @@ function MapContent() {
                 <link href="/css/map.css" rel="stylesheet" />
             </Head>
 
-            <div className={`min-h-screen transition-all duration-500 ${
-                theme === 'dark'
-                    ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900'
-                    : 'bg-gradient-to-br from-blue-50 via-white to-orange-50'
-            }`}>
+            <div className="min-h-screen transition-all duration-500">
                 {/* Header */}
                 <header className="relative z-30 p-4 lg:p-6">
                     <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -170,14 +180,14 @@ function MapContent() {
                         <div className="flex items-center space-x-4">
                             <Link
                                 href={route('home')}
-                                className={`p-3 rounded-xl transition-all duration-300 group ${
-                                    theme === 'dark'
-                                        ? 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
-                                        : 'bg-white/80 border border-slate-200/80 hover:bg-slate-50/80'
+                                className={`p-3 rounded-xl transition-all duration-300 group border ${
+                                    isDarkMode
+                                        ? 'border-slate-700/50 hover:bg-slate-700/50'
+                                        : 'border-slate-200/80 hover:bg-slate-50/80'
                                 }`}
                             >
                                 <ArrowLeft className={`w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200 ${
-                                    theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                                    isDarkMode ? 'text-slate-300' : 'text-slate-700'
                                 }`} />
                             </Link>
 
@@ -197,12 +207,12 @@ function MapContent() {
                                 </div>
                                 <div>
                                     <h1 className={`text-xl font-bold font-space-grotesk ${
-                                        theme === 'dark' ? 'text-white' : 'text-slate-900'
+                                        isDarkMode ? 'text-white' : 'text-slate-900'
                                     }`}>
                                         Peta Budaya Indonesia
                                     </h1>
                                     <p className={`text-sm ${
-                                        theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                                        isDarkMode ? 'text-slate-400' : 'text-slate-600'
                                     }`}>Eksplorasi interaktif warisan nusantara</p>
                                 </div>
                             </div>
@@ -213,16 +223,16 @@ function MapContent() {
                             {/* Tutorial Button */}
                             <button
                                 onClick={() => setShowTutorial(true)}
-                                className={`p-3 rounded-xl transition-all duration-300 group ${
-                                    theme === 'dark'
-                                        ? 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 text-slate-300'
-                                        : 'bg-white/80 border border-slate-200/80 hover:bg-slate-50/80 text-slate-700'
+                                className={`p-3 rounded-xl transition-all duration-300 group border ${
+                                    isDarkMode
+                                        ? 'border-slate-700/50 hover:bg-slate-700/50 text-slate-300'
+                                        : 'border-slate-200/80 hover:bg-slate-50/80 text-slate-700'
                                 }`}
                                 title="Panduan Penggunaan"
                             >
                                 <Info className="w-5 h-5" />
                             </button>
-                            <ThemeToggle size="md" />
+                            <AnimatedThemeToggler />
                         </div>
                     </div>
                 </header>
@@ -230,16 +240,16 @@ function MapContent() {
                 {/* Main Content */}
                 <div className="flex h-[calc(100vh-120px)] max-w-7xl mx-auto px-4 lg:px-6 gap-6">
                     {/* Sidebar */}
-                    <div className={`w-80 backdrop-blur-xl rounded-2xl p-6 overflow-y-auto custom-scrollbar ${
-                        theme === 'dark'
-                            ? 'bg-slate-900/90 border border-slate-700/50'
-                            : 'bg-white/95 border border-slate-200/70'
+                    <div className={`w-80 backdrop-blur-xl rounded-2xl p-6 overflow-y-auto custom-scrollbar border ${
+                        isDarkMode
+                            ? 'border-slate-700/50'
+                            : 'border-slate-200/70'
                     }`}>
                         {/* Search Bar */}
                         <div className="mb-6">
                             <div className="relative">
                                 <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-                                    theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                                    isDarkMode ? 'text-slate-400' : 'text-slate-500'
                                 }`} />
                                 <input
                                     type="text"
@@ -247,9 +257,9 @@ function MapContent() {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent search-input-focus ${
-                                        theme === 'dark'
-                                            ? 'bg-slate-800/50 border-slate-600 text-white placeholder-slate-400'
-                                            : 'bg-slate-50/80 border-slate-300 text-slate-900 placeholder-slate-500'
+                                        isDarkMode
+                                            ? 'border-slate-600 text-white placeholder-slate-400'
+                                            : 'border-slate-300 text-slate-900 placeholder-slate-500'
                                     }`}
                                 />
                             </div>
@@ -259,10 +269,10 @@ function MapContent() {
                         <div className="mb-6">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
-                                    theme === 'dark'
-                                        ? 'bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:bg-gray-700/50'
-                                        : 'bg-gray-50/80 border border-gray-300/50 text-gray-700 hover:bg-gray-100/80'
+                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-300 border ${
+                                    isDarkMode
+                                        ? 'border-gray-700/50 text-gray-300 hover:bg-gray-700/50'
+                                        : 'border-gray-300/50 text-gray-700 hover:bg-gray-100/80'
                                 }`}
                             >
                                 <span className="flex items-center">
@@ -279,7 +289,7 @@ function MapContent() {
                                     {/* Province Filter */}
                                     <div>
                                         <label className={`block text-sm font-medium mb-2 ${
-                                            theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                                            isDarkMode ? 'text-slate-300' : 'text-slate-700'
                                         }`}>
                                             Provinsi
                                         </label>
@@ -287,13 +297,20 @@ function MapContent() {
                                             value={selectedProvince}
                                             onChange={(e) => setSelectedProvince(e.target.value)}
                                             className={`w-full p-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${
-                                                theme === 'dark'
-                                                    ? 'bg-slate-800/50 border-slate-600 text-white'
-                                                    : 'bg-slate-50/80 border-slate-300 text-slate-900'
+                                                isDarkMode
+                                                    ? 'border-slate-600 text-white'
+                                                    : 'border-slate-300 text-slate-900'
                                             }`}
+                                            style={isDarkMode ? { colorScheme: 'dark' } : {}}
                                         >
                                             {provinces.map(province => (
-                                                <option key={province} value={province}>{province}</option>
+                                                <option
+                                                    key={province}
+                                                    value={province}
+                                                    style={{ color: 'black', backgroundColor: 'white' }}
+                                                >
+                                                    {province}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
@@ -301,7 +318,7 @@ function MapContent() {
                                     {/* Category Filter */}
                                     <div>
                                         <label className={`block text-sm font-medium mb-2 ${
-                                            theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                                            isDarkMode ? 'text-slate-300' : 'text-slate-700'
                                         }`}>
                                             Kategori
                                         </label>
@@ -309,13 +326,20 @@ function MapContent() {
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
                                             className={`w-full p-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${
-                                                theme === 'dark'
-                                                    ? 'bg-slate-800/50 border-slate-600 text-white'
-                                                    : 'bg-slate-50/80 border-slate-300 text-slate-900'
+                                                isDarkMode
+                                                    ? 'border-slate-600 text-white'
+                                                    : 'border-slate-300 text-slate-900'
                                             }`}
+                                            style={isDarkMode ? { colorScheme: 'dark' } : {}}
                                         >
                                             {categories.map(category => (
-                                                <option key={category} value={category}>{category}</option>
+                                                <option
+                                                    key={category}
+                                                    value={category}
+                                                    style={{ color: 'black', backgroundColor: 'white' }}
+                                                >
+                                                    {category}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
@@ -325,51 +349,51 @@ function MapContent() {
 
                         {/* Results Count */}
                         <div className={`mb-4 text-sm ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
                         }`}>
                             Ditemukan {filteredSites.length} lokasi budaya
                         </div>
 
                         {/* Quick Stats */}
                         {showStats && (
-                            <div className={`mb-6 p-4 rounded-xl ${
-                                theme === 'dark'
-                                    ? 'bg-gray-800/30 border border-gray-700/30'
-                                    : 'bg-gray-50/80 border border-gray-200/50'
+                            <div className={`mb-6 p-4 rounded-xl border ${
+                                isDarkMode
+                                    ? 'border-gray-700/30'
+                                    : 'border-gray-200/50'
                             }`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className={`font-medium ${
-                                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
                                     }`}>
                                         Statistik Singkat
                                     </h4>
                                     <button
                                         onClick={() => setShowStats(!showStats)}
                                         className={`text-xs ${
-                                            theme === 'dark' ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'
+                                            isDarkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                     >
                                         Sembunyikan
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 text-xs">
-                                    <div className={`p-2 rounded-lg ${
-                                        theme === 'dark' ? 'bg-slate-700/50' : 'bg-white/60'
+                                    <div className={`p-2 rounded-lg border ${
+                                        isDarkMode ? 'border-slate-700/50' : 'border-white/60'
                                     }`}>
                                         <div className="text-slate-600 font-semibold">
                                             {culturalSites.reduce((acc, site) => acc + site.articles, 0)}
                                         </div>
-                                        <div className={theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}>
+                                        <div className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
                                             Total Artikel
                                         </div>
                                     </div>
-                                    <div className={`p-2 rounded-lg ${
-                                        theme === 'dark' ? 'bg-slate-700/50' : 'bg-white/60'
+                                    <div className={`p-2 rounded-lg border ${
+                                        isDarkMode ? 'border-slate-700/50' : 'border-white/60'
                                     }`}>
                                         <div className="text-slate-500 font-semibold">
                                             {culturalSites.reduce((acc, site) => acc + site.photos, 0)}
                                         </div>
-                                        <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                                        <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
                                             Total Foto
                                         </div>
                                     </div>
@@ -385,48 +409,48 @@ function MapContent() {
                                     onClick={() => handleSiteSelect(site)}
                                     className={`p-4 rounded-xl cursor-pointer transition-all duration-300 border group site-card-hover ${
                                         selectedSite?.id === site.id
-                                            ? theme === 'dark'
-                                                ? 'bg-slate-600/20 border-slate-500/50'
-                                                : 'bg-slate-100/50 border-slate-400/40'
-                                            : theme === 'dark'
-                                                ? 'bg-slate-800/30 border-slate-700/30 hover:bg-slate-800/50 hover:border-slate-600/50'
-                                                : 'bg-white/60 border-slate-200/60 hover:bg-white/80 hover:border-slate-300/80'
+                                            ? isDarkMode
+                                                ? 'border-slate-500/50'
+                                                : 'border-slate-400/40'
+                                            : isDarkMode
+                                                ? 'border-slate-700/30 hover:border-slate-600/50'
+                                                : 'border-slate-200/60 hover:border-slate-300/80'
                                     }`}
                                 >
                                     <div className="flex items-start space-x-3">
-                                        <div className={`p-2 rounded-lg ${
+                                        <div className={`p-2 rounded-lg border ${
                                             selectedSite?.id === site.id
-                                                ? 'bg-slate-500/30'
-                                                : theme === 'dark'
-                                                    ? 'bg-slate-700/50'
-                                                    : 'bg-slate-100/80'
+                                                ? 'border-slate-500/30'
+                                                : isDarkMode
+                                                    ? 'border-slate-700/50'
+                                                    : 'border-slate-100/80'
                                         }`}>
                                             <MapPin className={`w-4 h-4 ${
                                                 selectedSite?.id === site.id
                                                     ? 'text-slate-600'
-                                                    : theme === 'dark'
+                                                    : isDarkMode
                                                         ? 'text-slate-400'
                                                         : 'text-slate-500'
                                             }`} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h3 className={`font-medium mb-1 ${
-                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                                isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>
                                                 {site.name}
                                             </h3>
                                             <p className={`text-sm mb-2 ${
-                                                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                             }`}>
                                                 {site.province} • {site.category}
                                             </p>
                                             <p className={`text-xs line-clamp-2 ${
-                                                theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                                                isDarkMode ? 'text-gray-500' : 'text-gray-500'
                                             }`}>
                                                 {site.description}
                                             </p>
                                             <div className={`flex items-center space-x-4 mt-2 text-xs ${
-                                                theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                                                isDarkMode ? 'text-gray-500' : 'text-gray-500'
                                             }`}>
                                                 <span className="flex items-center">
                                                     <BookOpen className="w-3 h-3 mr-1" />
@@ -447,69 +471,35 @@ function MapContent() {
                     {/* Map Area */}
                     <div className="flex-1 relative">
                         <div className={`h-full backdrop-blur-xl rounded-2xl overflow-hidden border relative map-container ${
-                            theme === 'dark'
-                                ? 'bg-gray-900/90 border-gray-700/50'
-                                : 'bg-white/95 border-gray-200/70'
+                            isDarkMode
+                                ? 'border-gray-700/50'
+                                : 'border-gray-200/70'
                         }`}>
-                            {/* Map Controls */}
-                            <div className="absolute top-4 right-4 z-20 flex flex-col space-y-2">
-                                <button
-                                    onClick={() => setZoomLevel(prev => Math.min(prev + 1, 15))}
-                                    className={`p-3 rounded-xl backdrop-blur-sm transition-all duration-300 ${
-                                        theme === 'dark'
-                                            ? 'bg-gray-800/80 border border-gray-700/50 text-gray-300 hover:bg-gray-700/80'
-                                            : 'bg-white/90 border border-gray-200/80 text-gray-700 hover:bg-gray-50/90'
-                                    }`}
-                                >
-                                    <ZoomIn className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={() => setZoomLevel(prev => Math.max(prev - 1, 3))}
-                                    className={`p-3 rounded-xl backdrop-blur-sm transition-all duration-300 ${
-                                        theme === 'dark'
-                                            ? 'bg-gray-800/80 border border-gray-700/50 text-gray-300 hover:bg-gray-700/80'
-                                            : 'bg-white/90 border border-gray-200/80 text-gray-700 hover:bg-gray-50/90'
-                                    }`}
-                                >
-                                    <ZoomOut className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={resetMapView}
-                                    className={`p-3 rounded-xl backdrop-blur-sm transition-all duration-300 ${
-                                        theme === 'dark'
-                                            ? 'bg-gray-800/80 border border-gray-700/50 text-gray-300 hover:bg-gray-700/80'
-                                            : 'bg-white/90 border border-gray-200/80 text-gray-700 hover:bg-gray-50/90'
-                                    }`}
-                                >
-                                    <RotateCcw className="w-5 h-5" />
-                                </button>
-                            </div>
-
                             {/* Map Placeholder - Sekarang menggunakan InteractiveMap component */}
                             <InteractiveMap
-                                theme={theme}
+                                theme={isDarkMode ? 'dark' : 'light'}
                                 sites={filteredSites}
                                 selectedSite={selectedSite}
                                 onSiteSelect={handleSiteSelect}
-                                zoomLevel={zoomLevel}
+                                zoomLevel={5}
                             />
 
                             {/* Selected Site Info Panel */}
                             {selectedSite && (
                                 <div className={`absolute bottom-4 right-4 w-80 backdrop-blur-xl rounded-2xl p-6 border floating-info-panel ${
-                                    theme === 'dark'
-                                        ? 'bg-gray-900/95 border-gray-700/50'
-                                        : 'bg-white/95 border-gray-200/70'
+                                    isDarkMode
+                                        ? 'border-gray-700/50'
+                                        : 'border-gray-200/70'
                                 }`}>
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
                                             <h3 className={`font-bold text-lg mb-1 font-space-grotesk ${
-                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                                isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>
                                                 {selectedSite.name}
                                             </h3>
                                             <p className={`text-sm ${
-                                                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                             }`}>
                                                 {selectedSite.province} • {selectedSite.category}
                                             </p>
@@ -517,7 +507,7 @@ function MapContent() {
                                         <button
                                             onClick={() => setSelectedSite(null)}
                                             className={`p-2 rounded-lg transition-colors duration-300 ${
-                                                theme === 'dark'
+                                                isDarkMode
                                                     ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/50'
                                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
                                             }`}
@@ -527,7 +517,7 @@ function MapContent() {
                                     </div>
 
                                     <p className={`text-sm mb-4 ${
-                                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
                                     }`}>
                                         {selectedSite.description}
                                     </p>
@@ -536,17 +526,17 @@ function MapContent() {
                                         <div className="flex space-x-4 text-sm">
                                             <div className="flex items-center">
                                                 <BookOpen className={`w-4 h-4 mr-1 ${
-                                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
                                                 }`} />
-                                                <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                                                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                                                     {selectedSite.articles} artikel
                                                 </span>
                                             </div>
                                             <div className="flex items-center">
                                                 <Camera className={`w-4 h-4 mr-1 ${
-                                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
                                                 }`} />
-                                                <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                                                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                                                     {selectedSite.photos} foto
                                                 </span>
                                             </div>
@@ -558,7 +548,7 @@ function MapContent() {
                                             Lihat Detail
                                         </button>
                                         <button className={`px-4 py-2 rounded-xl border transition-all duration-300 text-sm ${
-                                            theme === 'dark'
+                                            isDarkMode
                                                 ? 'border-gray-600 text-gray-300 hover:bg-gray-800/50'
                                                 : 'border-gray-300 text-gray-700 hover:bg-gray-50/50'
                                         }`}>
@@ -574,21 +564,21 @@ function MapContent() {
                 {/* Tutorial Modal */}
                 {showTutorial && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className={`max-w-2xl w-full rounded-2xl p-8 ${
-                            theme === 'dark'
-                                ? 'bg-gray-900/95 border border-gray-700/50'
-                                : 'bg-white/95 border border-gray-200/70'
+                        <div className={`max-w-2xl w-full rounded-2xl p-8 border ${
+                            isDarkMode
+                                ? 'border-gray-700/50'
+                                : 'border-gray-200/70'
                         }`}>
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className={`text-2xl font-bold font-space-grotesk ${
-                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                    isDarkMode ? 'text-white' : 'text-gray-900'
                                 }`}>
                                     Panduan Peta Interaktif
                                 </h3>
                                 <button
                                     onClick={() => setShowTutorial(false)}
                                     className={`p-2 rounded-lg transition-colors duration-300 ${
-                                        theme === 'dark'
+                                        isDarkMode
                                             ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/50'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
                                     }`}
@@ -598,22 +588,22 @@ function MapContent() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className={`p-4 rounded-xl ${
-                                        theme === 'dark' ? 'bg-slate-800/30' : 'bg-slate-50/80'
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className={`p-4 rounded-xl border ${
+                                        isDarkMode ? 'border-slate-800/30' : 'border-slate-50/80'
                                     }`}>
                                         <div className="flex items-center mb-3">
                                             <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center mr-3">
                                                 <Search className="w-4 h-4 text-white" />
                                             </div>
                                             <h4 className={`font-semibold ${
-                                                theme === 'dark' ? 'text-white' : 'text-slate-900'
+                                                isDarkMode ? 'text-white' : 'text-slate-900'
                                             }`}>
                                                 Pencarian
                                             </h4>
                                         </div>
                                         <p className={`text-sm ${
-                                            theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                                            isDarkMode ? 'text-slate-400' : 'text-slate-600'
                                         }`}>
                                             Gunakan kotak pencarian untuk menemukan lokasi budaya tertentu.
                                             Anda dapat mencari berdasarkan nama atau deskripsi.
@@ -621,76 +611,56 @@ function MapContent() {
                                     </div>
 
                                     <div className={`p-4 rounded-xl ${
-                                        theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50/80'
+                                        isDarkMode ? 'border-gray-800/30' : 'border-gray-50/80'
                                     }`}>
                                         <div className="flex items-center mb-3">
                                             <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center mr-3">
                                                 <Filter className="w-4 h-4 text-white" />
                                             </div>
                                             <h4 className={`font-semibold ${
-                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                                isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>
                                                 Filter
                                             </h4>
                                         </div>
                                         <p className={`text-sm ${
-                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                         }`}>
                                             Filter berdasarkan provinsi dan kategori untuk mempersempit hasil pencarian.
                                         </p>
                                     </div>
 
                                     <div className={`p-4 rounded-xl ${
-                                        theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50/80'
+                                        isDarkMode ? 'border-gray-800/30' : 'border-gray-50/80'
                                     }`}>
                                         <div className="flex items-center mb-3">
                                             <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
                                                 <MapPin className="w-4 h-4 text-white" />
                                             </div>
                                             <h4 className={`font-semibold ${
-                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                                isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>
                                                 Marker Interaktif
                                             </h4>
                                         </div>
                                         <p className={`text-sm ${
-                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                         }`}>
                                             Klik pada marker biru di peta atau item di sidebar untuk melihat detail lokasi budaya.
                                         </p>
                                     </div>
-
-                                    <div className={`p-4 rounded-xl ${
-                                        theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50/80'
-                                    }`}>
-                                        <div className="flex items-center mb-3">
-                                            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                                                <ZoomIn className="w-4 h-4 text-white" />
-                                            </div>
-                                            <h4 className={`font-semibold ${
-                                                theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                            }`}>
-                                                Kontrol Peta
-                                            </h4>
-                                        </div>
-                                        <p className={`text-sm ${
-                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                        }`}>
-                                            Gunakan tombol zoom (+/-) dan reset untuk mengatur tampilan peta sesuai kebutuhan.
-                                        </p>
-                                    </div>
                                 </div>
 
-                                <div className={`p-4 rounded-xl border-l-4 border-slate-500 ${
-                                    theme === 'dark' ? 'bg-slate-600/10' : 'bg-slate-100/50'
+                                <div className={`p-4 rounded-xl border-l-4 border-slate-500 border ${
+                                    isDarkMode ? 'border-slate-600/10' : 'border-slate-100/50'
                                 }`}>
                                     <h4 className={`font-semibold mb-2 ${
-                                        theme === 'dark' ? 'text-white' : 'text-slate-900'
+                                        isDarkMode ? 'text-white' : 'text-slate-900'
                                     }`}>
                                         💡 Tips Penggunaan
                                     </h4>
                                     <ul className={`text-sm space-y-1 ${
-                                        theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                                        isDarkMode ? 'text-slate-300' : 'text-slate-700'
                                     }`}>
                                         <li>• Klik pada daerah/pulau di peta untuk filter otomatis berdasarkan wilayah</li>
                                         <li>• Gunakan kombinasi pencarian dan filter untuk hasil yang lebih spesifik</li>
@@ -717,9 +687,5 @@ function MapContent() {
 }
 
 export default function Map() {
-    return (
-        <ThemeProvider>
-            <MapContent />
-        </ThemeProvider>
-    );
+    return <MapContent />;
 }

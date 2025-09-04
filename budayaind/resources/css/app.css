@@ -150,3 +150,73 @@
         background-size: 50px 50px;
     }
 }
+
+/* Magic UI Animated Theme Toggler - View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* Optimize View Transitions for better performance */
+::view-transition-image-pair(root) {
+    isolation: auto;
+}
+
+::view-transition-old(root) {
+    z-index: 1;
+}
+
+::view-transition-new(root) {
+    z-index: 999;
+}
+
+/* Enable smooth theme transitions */
+:root {
+    view-transition-name: root;
+}
+
+/* Smooth theme transitions for all elements */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Disable transitions during view transition to prevent conflicts */
+.view-transition-active * {
+    transition: none !important;
+}
+
+/* Additional Magic UI theme toggle styles */
+.dark {
+    color-scheme: dark;
+}
+
+/* Prevent flicker during theme changes */
+html {
+    color-scheme: light dark;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
+/* Enhanced icon transitions for theme toggle */
+@keyframes theme-toggle-rotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: rotate(90deg) scale(0.8);
+        opacity: 0.7;
+    }
+    100% {
+        transform: rotate(180deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Apply animation to theme toggle icons */
+.theme-toggle-icon {
+    animation: theme-toggle-rotate 0.5s ease-in-out;
+}

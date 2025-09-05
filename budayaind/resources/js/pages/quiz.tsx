@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Brain, Trophy, Users, Clock, Star, Play, BookOpen, Globe } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, Brain, Trophy, Users, Clock, Play, BookOpen, Building2, Flower, Home, Crown, Feather, Mountain, Trees, Flag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
@@ -7,26 +7,15 @@ import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggle
 // Data provinsi untuk quiz
 const provinces = [
     {
-        id: 'all',
-        name: 'Seluruh Indonesia',
-        description: 'Quiz komprehensif tentang budaya dari seluruh nusantara',
-        difficulty: 'Menengah',
-        questions: 50,
-        time: 30,
-        image: '/images/indonesia-map.jpg',
-        color: 'from-[#a4773e] to-[#d4a574]',
-        icon: '🇮🇩'
-    },
-    {
         id: 'jawa-tengah',
         name: 'Jawa Tengah',
         description: 'Budaya Jawa klasik, batik, dan tradisi keraton',
         difficulty: 'Mudah',
         questions: 20,
         time: 15,
-        image: '/images/jawa-tengah.jpg',
+        image: '/public/images/tongkonan.jpg', // Gambar: Candi Borobudur/Prambanan, Batik, Keraton Solo/Yogya
         color: 'from-amber-400 to-orange-500',
-        icon: '🏛️'
+        icon: Building2
     },
     {
         id: 'bali',
@@ -35,9 +24,9 @@ const provinces = [
         difficulty: 'Mudah',
         questions: 20,
         time: 15,
-        image: '/images/bali.jpg',
+        image: '/images/bali.jpg', // Gambar: Pura Tanah Lot, Penari Legong, Padi Terrasering Jatiluwih
         color: 'from-emerald-400 to-teal-500',
-        icon: '🌺'
+        icon: Flower
     },
     {
         id: 'sumatera-barat',
@@ -46,9 +35,9 @@ const provinces = [
         difficulty: 'Mudah',
         questions: 20,
         time: 15,
-        image: '/images/sumbar.jpg',
+        image: '/images/sumbar.jpg', // Gambar: Rumah Gadang, Danau Maninjau, Rendang/Masakan Padang
         color: 'from-red-400 to-pink-500',
-        icon: '🏠'
+        icon: Home
     },
     {
         id: 'yogyakarta',
@@ -57,9 +46,9 @@ const provinces = [
         difficulty: 'Mudah',
         questions: 20,
         time: 15,
-        image: '/images/yogya.jpg',
+        image: '/images/yogya.jpg', // Gambar: Keraton Yogyakarta, Malioboro, Gudeg, Tugu Yogya
         color: 'from-blue-400 to-indigo-500',
-        icon: '👑'
+        icon: Crown
     },
     {
         id: 'papua',
@@ -68,9 +57,9 @@ const provinces = [
         difficulty: 'Sulit',
         questions: 25,
         time: 20,
-        image: '/images/papua.jpg',
+        image: '/images/papua.jpg', // Gambar: Cendrawasih, Suku Dani, Pegunungan Jayawijaya, Honai
         color: 'from-purple-400 to-violet-500',
-        icon: '🪶'
+        icon: Feather
     },
     {
         id: 'sulawesi-selatan',
@@ -79,9 +68,9 @@ const provinces = [
         difficulty: 'Menengah',
         questions: 25,
         time: 20,
-        image: '/images/sulsel.jpg',
+        image: '/images/tongkonan.jpg', // Gambar: Rumah Tongkonan, Kapal Pinisi, Benteng Rotterdam
         color: 'from-cyan-400 to-blue-500',
-        icon: '🏔️'
+        icon: Mountain
     },
     {
         id: 'kalimantan',
@@ -90,9 +79,20 @@ const provinces = [
         difficulty: 'Menengah',
         questions: 25,
         time: 20,
-        image: '/images/kalimantan.jpg',
+        image: '/images/kalimantan.jpg', // Gambar: Rumah Betang, Orangutan, Sungai Mahakam, Dayak Dance
         color: 'from-green-400 to-emerald-500',
-        icon: '🌳'
+        icon: Trees
+    },
+    {
+        id: 'indonesia',
+        name: 'Indonesia',
+        description: 'Pengetahuan umum budaya Indonesia',
+        difficulty: 'Sulit',
+        questions: 30,
+        time: 25,
+        image: '/images/indonesia.jpg', // Gambar: Garuda Pancasila, Tari Saman, Wayang, Bendera Merah Putih
+        color: 'from-red-500 to-red-600',
+        icon: Flag
     }
 ];
 
@@ -144,8 +144,36 @@ function QuizContent() {
     };
 
     const handleStartQuiz = (provinceId: string) => {
-        setSelectedProvince(provinceId);
-        setShowQuizModal(true);
+        // Route to specific province quiz pages
+        switch (provinceId) {
+            case 'jawa-tengah':
+                router.visit(route('quiz.jawa-tengah'));
+                break;
+            case 'bali':
+                router.visit(route('quiz.bali'));
+                break;
+            case 'sumatera-barat':
+                router.visit(route('quiz.sumatera-barat'));
+                break;
+            case 'yogyakarta':
+                router.visit(route('quiz.yogyakarta'));
+                break;
+            case 'papua':
+                router.visit(route('quiz.papua'));
+                break;
+            case 'sulawesi-selatan':
+                router.visit(route('quiz.sulawesi-selatan'));
+                break;
+            case 'kalimantan':
+                router.visit(route('quiz.kalimantan'));
+                break;
+            case 'indonesia':
+                router.visit(route('quiz.indonesia'));
+                break;
+            default:
+                setSelectedProvince(provinceId);
+                setShowQuizModal(true);
+        }
     };
 
     return (
@@ -304,62 +332,96 @@ function QuizContent() {
                             {provinces.map((province) => (
                                 <div
                                     key={province.id}
-                                    className={`group backdrop-blur-xl rounded-2xl p-6 border transition-all duration-300 hover:transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl ${
+                                    className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 hover:transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl overflow-hidden ${
                                         isDarkMode
                                             ? 'border-gray-600/50 hover:border-gray-500/70'
                                             : 'border-gray-300/50 hover:border-gray-400/70'
                                     }`}
                                     onClick={() => handleStartQuiz(province.id)}
                                 >
-                                    {/* Province Icon & Header */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="text-3xl">{province.icon}</div>
-                                        <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(province.difficulty)}`}>
-                                            {province.difficulty}
+                                    {/* Province Image Header */}
+                                    <div className="relative h-32 bg-gradient-to-br from-gray-100 via-gray-50 to-white overflow-hidden">
+                                        {/* Background Pattern */}
+                                        <div className="absolute inset-0 opacity-20">
+                                            <div className={`w-full h-full bg-gradient-to-br ${province.color}`}></div>
                                         </div>
-                                    </div>
 
-                                    {/* Province Name */}
-                                    <h3 className={`font-bold text-lg mb-2 font-space-grotesk ${
-                                        isDarkMode ? 'text-white' : 'text-gray-900'
-                                    }`}>
-                                        {province.name}
-                                    </h3>
+                                        {/* Actual Province Image */}
+                                        {province.image && (
+                                            <img
+                                                src={province.image}
+                                                alt={`${province.name} cultural imagery`}
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                onError={(e) => {
+                                                    // Fallback to placeholder if image fails to load
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        )}
 
-                                    {/* Description */}
-                                    <p className={`text-sm mb-4 line-clamp-2 ${
-                                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                                    }`}>
-                                        {province.description}
-                                    </p>
+                                        {/* Overlay untuk readability */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
 
-                                    {/* Quiz Info */}
-                                    <div className="flex items-center justify-between mb-4 text-sm">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="flex items-center">
-                                                <BookOpen className={`w-4 h-4 mr-1 ${
-                                                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                                                }`} />
-                                                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                                    {province.questions} soal
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <Clock className={`w-4 h-4 mr-1 ${
-                                                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                                                }`} />
-                                                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                                    {province.time} menit
-                                                </span>
+                                        {/* Icon dan Badge overlay */}
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                                                    <province.icon className="w-8 h-8 text-gray-700" />
+                                                </div>
+                                                <div className={`px-3 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-medium border shadow-sm ${getDifficultyColor(province.difficulty)}`}>
+                                                    {province.difficulty}
+                                                </div>
                                             </div>
                                         </div>
+
+                                        {/* Hover effect overlay */}
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                                     </div>
 
-                                    {/* Start Button */}
-                                    <button className={`w-full py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r ${province.color} text-white hover:shadow-lg flex items-center justify-center group-hover:from-[#a4773e] group-hover:to-[#d4a574]`}>
-                                        <Play className="w-4 h-4 mr-2" />
-                                        Mulai Quiz
-                                    </button>
+                                    {/* Card Content */}
+                                    <div className="p-6">
+                                        {/* Province Name */}
+                                        <h3 className={`font-bold text-lg mb-2 font-space-grotesk ${
+                                            isDarkMode ? 'text-white' : 'text-gray-900'
+                                        }`}>
+                                            {province.name}
+                                        </h3>
+
+                                        {/* Description */}
+                                        <p className={`text-sm mb-4 line-clamp-2 ${
+                                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                        }`}>
+                                            {province.description}
+                                        </p>
+
+                                        {/* Quiz Info */}
+                                        <div className="flex items-center justify-between mb-4 text-sm">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="flex items-center">
+                                                    <BookOpen className={`w-4 h-4 mr-1 ${
+                                                        isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                    }`} />
+                                                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                                                        {province.questions} soal
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <Clock className={`w-4 h-4 mr-1 ${
+                                                        isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                    }`} />
+                                                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                                                        {province.time} menit
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Start Button */}
+                                        <button className={`w-full py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r ${province.color} text-white hover:shadow-lg flex items-center justify-center group-hover:from-[#a4773e] group-hover:to-[#d4a574]`}>
+                                            <Play className="w-4 h-4 mr-2" />
+                                            Mulai Quiz
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -440,7 +502,9 @@ function QuizContent() {
                                 return (
                                     <>
                                         <div className="text-center mb-6">
-                                            <div className="text-4xl mb-4">{province.icon}</div>
+                                            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                <province.icon className="w-8 h-8 text-gray-700" />
+                                            </div>
                                             <h3 className={`text-2xl font-bold font-space-grotesk mb-2 ${
                                                 isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>

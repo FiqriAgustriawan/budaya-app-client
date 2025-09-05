@@ -42,7 +42,7 @@ Route::get('/tickets/{ticket}', [\App\Http\Controllers\PublicTicketController::c
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = \Illuminate\Support\Facades\Auth::user();
-        
+
         switch ($user->role) {
             case 'admin':
                 return redirect()->route('admin.dashboard');
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     // ADD: Customer Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('dashboard');
-    
+
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('profile.update');
 
@@ -136,7 +136,7 @@ Route::middleware(['auth', 'verified', 'role:seller'])->prefix('seller')->name('
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     // ADD: Admin Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Existing Seller Requests Management
     Route::get('/seller-requests', [SellerRequestController::class, 'index'])->name('seller-requests.index');
     Route::get('/seller-requests/{sellerRequest}', [SellerRequestController::class, 'show'])->name('seller-requests.show');
@@ -210,6 +210,39 @@ Route::get('/test-webhook-get/{orderNumber}', function ($orderNumber) {
 Route::get('/quiz', function () {
     return Inertia::render('quiz');
 })->name('quiz');
+
+// Quiz Routes untuk setiap provinsi
+Route::get('/quiz/jawa-tengah', function () {
+    return Inertia::render('quiz/JawaTengahQuiz');
+})->name('quiz.jawa-tengah');
+
+Route::get('/quiz/bali', function () {
+    return Inertia::render('quiz/BaliQuiz');
+})->name('quiz.bali');
+
+Route::get('/quiz/sumatera-barat', function () {
+    return Inertia::render('quiz/SumateraBaratQuiz');
+})->name('quiz.sumatera-barat');
+
+Route::get('/quiz/yogyakarta', function () {
+    return Inertia::render('quiz/YogyakartaQuiz');
+})->name('quiz.yogyakarta');
+
+Route::get('/quiz/papua', function () {
+    return Inertia::render('quiz/PapuaQuiz');
+})->name('quiz.papua');
+
+Route::get('/quiz/sulawesi-selatan', function () {
+    return Inertia::render('quiz/SulawesiSelatanQuiz');
+})->name('quiz.sulawesi-selatan');
+
+Route::get('/quiz/kalimantan', function () {
+    return Inertia::render('quiz/KalimantanQuiz');
+})->name('quiz.kalimantan');
+
+Route::get('/quiz/indonesia', function () {
+    return Inertia::render('quiz/IndonesiaQuiz');
+})->name('quiz.indonesia');
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/settings.php';

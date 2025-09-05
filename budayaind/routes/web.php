@@ -5,7 +5,7 @@ use App\Http\Controllers\Customer\ProfileController as CustomerProfileController
 use App\Http\Controllers\Customer\RequestSellerController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
-use App\Http\Controllers\Customer\PaymentController; // TAMBAHKAN INI
+use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\Customer\TicketController as CustomerTicketController;
 use App\Http\Controllers\Seller\SellerDashboardController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\Seller\TicketController as SellerTicketController;
 use App\Http\Controllers\Seller\EarningsController;
 use App\Http\Controllers\Seller\WithdrawalController;
 use App\Http\Controllers\Admin\SellerRequestController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; // ADD THIS
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,12 +34,32 @@ Route::get('/browse-tickets', function () {
     return redirect()->route('tickets.index');
 })->name('browse-tickets');
 
+// Public Tickets Routes (accessible to all)
+Route::get('/tickets', [\App\Http\Controllers\PublicTicketController::class, 'index'])->name('tickets.index');
+Route::get('/tickets/{ticket}', [\App\Http\Controllers\PublicTicketController::class, 'show'])->name('tickets.show');
+
+// GANTI: Route dashboard umum dengan redirect berdasarkan role
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', function () {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        switch ($user->role) {
+            case 'admin':
+                return redirect()->route('admin.dashboard');
+            case 'seller':
+                return redirect()->route('seller.dashboard');
+            case 'customer':
+            default:
+                return redirect()->route('customer.dashboard');
+        }
+    })->name('dashboard');
 });
 
 // Customer Routes
 Route::middleware(['auth', 'verified', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
+    // ADD: Customer Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('dashboard');
+    
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('profile.update');
 
@@ -113,6 +134,9 @@ Route::middleware(['auth', 'verified', 'role:seller'])->prefix('seller')->name('
 
 // Admin routes
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // ADD: Admin Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
     // Existing Seller Requests Management
     Route::get('/seller-requests', [SellerRequestController::class, 'index'])->name('seller-requests.index');
     Route::get('/seller-requests/{sellerRequest}', [SellerRequestController::class, 'show'])->name('seller-requests.show');

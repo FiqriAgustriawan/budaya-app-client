@@ -27,7 +27,7 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
     const [panX, setPanX] = useState(0);
     const [panY, setPanY] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-    
+
     // State untuk drag functionality
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
@@ -150,13 +150,13 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isDragging || !dragStart) return;
         e.preventDefault();
-        
+
         const deltaX = e.clientX - dragStart.x;
         const deltaY = e.clientY - dragStart.y;
-        
+
         // Adjust sensitivity based on zoom level
         const sensitivity = 1 / zoomLevel;
-        
+
         setPanX(lastPanX + deltaX * sensitivity);
         setPanY(lastPanY + deltaY * sensitivity);
     }, [isDragging, dragStart, lastPanX, lastPanY, zoomLevel]);
@@ -185,13 +185,13 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
         if (!isDragging || !dragStart || e.touches.length !== 1) return;
         e.preventDefault();
-        
+
         const touch = e.touches[0];
         const deltaX = touch.clientX - dragStart.x;
         const deltaY = touch.clientY - dragStart.y;
-        
+
         const sensitivity = 1 / zoomLevel;
-        
+
         setPanX(lastPanX + deltaX * sensitivity);
         setPanY(lastPanY + deltaY * sensitivity);
     }, [isDragging, dragStart, lastPanX, lastPanY, zoomLevel]);

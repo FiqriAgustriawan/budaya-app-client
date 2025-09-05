@@ -1,6 +1,6 @@
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, BookOpen, Camera, Globe, Users, Sparkles, Database } from 'lucide-react';
+import { ArrowRight, BookOpen, Camera, Globe, Users, Sparkles, Database, Brain } from 'lucide-react';
 import { AnimatedThemeToggler } from "@/components/magicui/animated-theme-toggler";
 import { FlipText } from "@/components/magicui/flip-text";
 import { useAppearance } from "@/hooks/use-appearance";
@@ -99,6 +99,19 @@ function WelcomeContent() {
 
                         {/* Navigation Links */}
                         <div className="flex items-center gap-4">
+                            {/* Quiz Link */}
+                            <Link
+                                href={route('quiz')}
+                                className={`px-4 py-2 font-medium transition-colors duration-300 rounded-xl flex items-center space-x-2 ${
+                                    isDarkMode
+                                        ? 'text-gray-300 hover:text-[#a4773e] hover:bg-gray-800/50'
+                                        : 'text-gray-700 hover:text-[#a4773e] hover:bg-gray-100/80'
+                                }`}
+                            >
+                                <Brain className="w-4 h-4" />
+                                <span>Quiz</span>
+                            </Link>
+
                             {/* Peta Link */}
                             <Link
                                 href={route('map')}

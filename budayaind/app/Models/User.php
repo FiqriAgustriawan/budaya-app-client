@@ -4,10 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -24,12 +23,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'phone',           // Pastikan ini ada
-        'address',         // Pastikan ini ada
-        'profile_image',   // Pastikan ini ada
         'is_active',
-        'email_verified_at',
-        'seller_data', // Add this
+        'phone',
+        'address',
+        'profile_image',
+        'balance',
+        'last_login_at',
     ];
 
     /**
@@ -45,7 +44,7 @@ class User extends Authenticatable
     /**
      * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
     protected function casts(): array
     {
@@ -53,7 +52,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
-            'seller_data' => 'array', // Add this
+            'balance' => 'decimal:2',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -168,5 +168,37 @@ class User extends Authenticatable
     public function withdrawalRequests(): HasMany
     {
         return $this->hasMany(WithdrawalRequest::class, 'seller_id');
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByRole($query, $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    // Helper methods
+    public function getAvailableBalance(): float
+    {
+        if (!$this->isSeller()) {
+            return 0;
+        }
+
+        return $this->sellerEarnings()
+            ->where('status', 'available')
+            ->sum('seller_amount');
+    }
+
+    public function getTotalEarnings(): float
+    {
+        if (!$this->isSeller()) {
+            return 0;
+        }
+
+        return $this->sellerEarnings()->sum('seller_amount');
     }
 }

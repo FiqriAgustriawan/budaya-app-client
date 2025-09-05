@@ -27,6 +27,12 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
     const [panX, setPanX] = useState(0);
     const [panY, setPanY] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
+    
+    // State untuk drag functionality
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+    const [lastPanX, setLastPanX] = useState(0);
+    const [lastPanY, setLastPanY] = useState(0);
 
     useEffect(() => {
         // Simulate map loading
@@ -80,6 +86,8 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
 
         setPanX(targetPanX);
         setPanY(targetPanY);
+        setLastPanX(targetPanX);
+        setLastPanY(targetPanY);
 
         // Selesai animasi setelah 500ms
         setTimeout(() => setIsAnimating(false), 500);
@@ -91,6 +99,8 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
         setZoomLevel(1);
         setPanX(0);
         setPanY(0);
+        setLastPanX(0);
+        setLastPanY(0);
         setTimeout(() => setIsAnimating(false), 500);
     }, []);
 
@@ -110,6 +120,8 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
             if (zoomLevel <= 1.5) {
                 setPanX(0);
                 setPanY(0);
+                setLastPanX(0);
+                setLastPanY(0);
             }
             setTimeout(() => setIsAnimating(false), 300);
         }
@@ -124,6 +136,70 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
             resetZoom();
         }
     }, [selectedSite, mapLoaded, zoomToSite, resetZoom]);
+
+    // Mouse drag handlers
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (e.button !== 0) return; // Only handle left mouse button
+        e.preventDefault();
+        setIsDragging(true);
+        setDragStart({ x: e.clientX, y: e.clientY });
+        setLastPanX(panX);
+        setLastPanY(panY);
+    }, [panX, panY]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!isDragging || !dragStart) return;
+        e.preventDefault();
+        
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+        
+        // Adjust sensitivity based on zoom level
+        const sensitivity = 1 / zoomLevel;
+        
+        setPanX(lastPanX + deltaX * sensitivity);
+        setPanY(lastPanY + deltaY * sensitivity);
+    }, [isDragging, dragStart, lastPanX, lastPanY, zoomLevel]);
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false);
+        setDragStart(null);
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setIsDragging(false);
+        setDragStart(null);
+    }, []);
+
+    // Touch handlers for mobile support
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        if (e.touches.length !== 1) return; // Only handle single touch
+        e.preventDefault();
+        const touch = e.touches[0];
+        setIsDragging(true);
+        setDragStart({ x: touch.clientX, y: touch.clientY });
+        setLastPanX(panX);
+        setLastPanY(panY);
+    }, [panX, panY]);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!isDragging || !dragStart || e.touches.length !== 1) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - dragStart.x;
+        const deltaY = touch.clientY - dragStart.y;
+        
+        const sensitivity = 1 / zoomLevel;
+        
+        setPanX(lastPanX + deltaX * sensitivity);
+        setPanY(lastPanY + deltaY * sensitivity);
+    }, [isDragging, dragStart, lastPanX, lastPanY, zoomLevel]);
+
+    const handleTouchEnd = useCallback(() => {
+        setIsDragging(false);
+        setDragStart(null);
+    }, []);
 
     return (
         <div className="relative h-full w-full">
@@ -202,7 +278,16 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
                                 theme === 'dark'
                                     ? 'drop-shadow(0 0 20px rgba(100, 116, 139, 0.3))'
                                     : 'drop-shadow(0 0 20px rgba(100, 116, 139, 0.2))',
+                            cursor: isDragging ? 'grabbing' : 'grab',
+                            userSelect: 'none',
                         }}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseLeave}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
                     >
                         {/* Background */}
                         <rect width="100%" height="100%" fill={theme === 'dark' ? 'rgba(30, 41, 59, 0.4)' : 'rgba(248, 250, 252, 0.6)'} />
@@ -211,7 +296,7 @@ export function InteractiveMap({ theme, sites, selectedSite, onSiteSelect }: Map
                         <g
                             transform={`translate(${panX}, ${panY}) scale(${zoomLevel})`}
                             style={{
-                                transition: isAnimating ? 'transform 0.5s ease-in-out' : 'none',
+                                transition: isAnimating && !isDragging ? 'transform 0.5s ease-in-out' : 'none',
                             }}
                         >
                             {/* Indonesia Map - menggunakan external SVG */}

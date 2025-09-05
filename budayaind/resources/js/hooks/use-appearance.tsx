@@ -19,12 +19,6 @@ const setCookie = (name: string, value: string, days = 365) => {
     document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
 };
 
-const applyTheme = (appearance: Appearance) => {
-    const isDark = appearance === 'dark' || (appearance === 'system' && prefersDark());
-
-    document.documentElement.classList.toggle('dark', isDark);
-};
-
 const mediaQuery = () => {
     if (typeof window === 'undefined') {
         return null;
@@ -34,16 +28,42 @@ const mediaQuery = () => {
 };
 
 const handleSystemThemeChange = () => {
-    const currentAppearance = localStorage.getItem('appearance') as Appearance;
-    applyTheme(currentAppearance || 'system');
+    const currentAppearance = (typeof localStorage !== 'undefined'
+        ? localStorage.getItem('appearance')
+        : null) as Appearance;
+
+    if (currentAppearance === 'system') {
+        const isDark = prefersDark();
+        console.log('System theme changed, isDark:', isDark); // Debug log
+
+        if (typeof document !== 'undefined') {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    }
 };
 
 export function initializeTheme() {
-    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    const savedAppearance = (typeof localStorage !== 'undefined'
+        ? localStorage.getItem('appearance')
+        : null) as Appearance || 'system';
 
-    applyTheme(savedAppearance);
+    // Apply theme immediately
+    const isDark = savedAppearance === 'dark' || (savedAppearance === 'system' && prefersDark());
+    console.log('Initializing theme:', savedAppearance, 'isDark:', isDark); // Debug log
 
-    // Add the event listener for system theme changes...
+    if (typeof document !== 'undefined') {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+
+    // Add the event listener for system theme changes
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
@@ -51,23 +71,89 @@ export function useAppearance() {
     const [appearance, setAppearance] = useState<Appearance>('system');
 
     const updateAppearance = useCallback((mode: Appearance) => {
+        console.log('Updating appearance to:', mode); // Debug log
+
+        // Update state first
         setAppearance(mode);
 
-        // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', mode);
+        // Apply theme immediately to DOM
+        const isDark = mode === 'dark' || (mode === 'system' && prefersDark());
+        console.log('Applying dark mode:', isDark); // Debug log
 
-        // Store in cookie for SSR...
+        // Add class to indicate view transition is active (if supported)
+        const hasViewTransitions = typeof document !== 'undefined' && 'startViewTransition' in document;
+        if (hasViewTransitions) {
+            document.documentElement.classList.add('view-transition-active');
+        }
+
+        // Force DOM update with better error handling
+        if (typeof document !== 'undefined') {
+            try {
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                }
+            } catch (error) {
+                console.warn('Error updating theme classes:', error);
+            }
+
+            // Remove view transition class after a brief delay
+            if (hasViewTransitions) {
+                setTimeout(() => {
+                    document.documentElement.classList.remove('view-transition-active');
+                }, 100);
+            }
+        }
+
+        // Store in localStorage for client-side persistence
+        if (typeof localStorage !== 'undefined') {
+            try {
+                localStorage.setItem('appearance', mode);
+            } catch (error) {
+                console.warn('Error saving to localStorage:', error);
+            }
+        }
+
+        // Store in cookie for SSR
         setCookie('appearance', mode);
-
-        applyTheme(mode);
     }, []);
 
     useEffect(() => {
-        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
-        updateAppearance(savedAppearance || 'system');
+        // Get saved appearance from localStorage
+        const savedAppearance = (typeof localStorage !== 'undefined'
+            ? localStorage.getItem('appearance')
+            : null) as Appearance | null;
 
-        return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);
-    }, [updateAppearance]);
+        const initialAppearance = savedAppearance || 'system';
+
+        // Apply theme immediately on mount
+        const isDark = initialAppearance === 'dark' || (initialAppearance === 'system' && prefersDark());
+
+        if (typeof document !== 'undefined') {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        setAppearance(initialAppearance);
+
+        // Add system theme change listener
+        const mediaQueryList = mediaQuery();
+        if (mediaQueryList) {
+            mediaQueryList.addEventListener('change', handleSystemThemeChange);
+        }
+
+        return () => {
+            if (mediaQueryList) {
+                mediaQueryList.removeEventListener('change', handleSystemThemeChange);
+            }
+        };
+    }, []);
 
     return { appearance, updateAppearance } as const;
 }

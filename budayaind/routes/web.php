@@ -207,5 +207,9 @@ Route::get('/test-webhook-get/{orderNumber}', function ($orderNumber) {
     }
 });
 
+Route::get('/quiz', function () {
+    return Inertia::render('quiz');
+})->name('quiz');
+
 require __DIR__ . '/auth.php';
 require __DIR__ . '/settings.php';

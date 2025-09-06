@@ -47,7 +47,7 @@ export default function PapuaQuiz() {
 
                 {/* Results Background */}
                 <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-orange-700">
-                    
+
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,_rgba(34,197,94,0.4)_0%,_transparent_25%)] bg-[length:60px_60px]"></div>
@@ -65,12 +65,12 @@ export default function PapuaQuiz() {
                     {/* Results Content */}
                     <div className="relative z-10 px-6 pb-12">
                         <div className="max-w-4xl mx-auto text-center">
-                            
+
                             {/* Result Icon */}
                             <div className="mb-8">
                                 <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 ${
-                                    isPassed 
-                                        ? 'bg-green-500/20 border border-green-400/30' 
+                                    isPassed
+                                        ? 'bg-green-500/20 border border-green-400/30'
                                         : 'bg-red-500/20 border border-red-400/30'
                                 }`}>
                                     {isPassed ? (
@@ -83,8 +83,8 @@ export default function PapuaQuiz() {
                                     {isPassed ? 'Selamat!' : 'Coba Lagi!'}
                                 </h1>
                                 <p className="text-xl text-white/80">
-                                    {isPassed 
-                                        ? 'Anda berhasil menguasai budaya Pulau Papua!' 
+                                    {isPassed
+                                        ? 'Anda berhasil menguasai budaya Pulau Papua!'
                                         : 'Terus belajar tentang budaya Pulau Papua!'}
                                 </p>
                             </div>
@@ -119,8 +119,8 @@ export default function PapuaQuiz() {
                                         <div className="text-sm text-red-300">Salah</div>
                                     </div>
                                     <div className={`border rounded-xl p-4 ${
-                                        isPassed 
-                                            ? 'bg-green-500/20 border-green-400/30' 
+                                        isPassed
+                                            ? 'bg-green-500/20 border-green-400/30'
                                             : 'bg-red-500/20 border-red-400/30'
                                     }`}>
                                         <div className={`text-2xl font-bold mb-1 ${
@@ -162,7 +162,7 @@ export default function PapuaQuiz() {
                                         💡 Tips untuk Skor Lebih Baik
                                     </h3>
                                     <p className="text-blue-200 text-sm">
-                                        Pelajari lebih dalam tentang suku-suku asli Papua, burung Cendrawasih, 
+                                        Pelajari lebih dalam tentang suku-suku asli Papua, burung Cendrawasih,
                                         tradisi Melanesia, seni ukir, dan kearifan lokal Papua sebelum mencoba lagi.
                                     </p>
                                 </div>

@@ -47,7 +47,7 @@ export default function SulawesiQuiz() {
 
                 {/* Results Background */}
                 <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-cyan-800 to-teal-700">
-                    
+
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,_rgba(59,130,246,0.4)_0%,_transparent_30%)] bg-[length:70px_70px]"></div>
@@ -65,12 +65,12 @@ export default function SulawesiQuiz() {
                     {/* Results Content */}
                     <div className="relative z-10 px-6 pb-12">
                         <div className="max-w-4xl mx-auto text-center">
-                            
+
                             {/* Result Icon */}
                             <div className="mb-8">
                                 <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 ${
-                                    isPassed 
-                                        ? 'bg-green-500/20 border border-green-400/30' 
+                                    isPassed
+                                        ? 'bg-green-500/20 border border-green-400/30'
                                         : 'bg-red-500/20 border border-red-400/30'
                                 }`}>
                                     {isPassed ? (
@@ -83,8 +83,8 @@ export default function SulawesiQuiz() {
                                     {isPassed ? 'Selamat!' : 'Coba Lagi!'}
                                 </h1>
                                 <p className="text-xl text-white/80">
-                                    {isPassed 
-                                        ? 'Anda berhasil menguasai budaya Pulau Sulawesi!' 
+                                    {isPassed
+                                        ? 'Anda berhasil menguasai budaya Pulau Sulawesi!'
                                         : 'Terus belajar tentang budaya Pulau Sulawesi!'}
                                 </p>
                             </div>
@@ -119,8 +119,8 @@ export default function SulawesiQuiz() {
                                         <div className="text-sm text-red-300">Salah</div>
                                     </div>
                                     <div className={`border rounded-xl p-4 ${
-                                        isPassed 
-                                            ? 'bg-green-500/20 border-green-400/30' 
+                                        isPassed
+                                            ? 'bg-green-500/20 border-green-400/30'
                                             : 'bg-red-500/20 border-red-400/30'
                                     }`}>
                                         <div className={`text-2xl font-bold mb-1 ${
@@ -162,7 +162,7 @@ export default function SulawesiQuiz() {
                                         💡 Tips untuk Skor Lebih Baik
                                     </h3>
                                     <p className="text-blue-200 text-sm">
-                                        Pelajari lebih dalam tentang rumah Tongkonan, perahu Pinisi, tradisi Toraja, 
+                                        Pelajari lebih dalam tentang rumah Tongkonan, perahu Pinisi, tradisi Toraja,
                                         budaya maritim Bugis-Makassar, dan seni budaya Minahasa sebelum mencoba lagi.
                                     </p>
                                 </div>

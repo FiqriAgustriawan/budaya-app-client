@@ -211,34 +211,26 @@ Route::get('/quiz', function () {
     return Inertia::render('quiz');
 })->name('quiz');
 
-// Quiz Routes untuk setiap provinsi
-Route::get('/quiz/jawa-tengah', function () {
-    return Inertia::render('quiz/JawaTengahQuiz');
-})->name('quiz.jawa-tengah');
+// Quiz Routes untuk setiap pulau
+Route::get('/quiz/sumatera', function () {
+    return Inertia::render('quiz/SumateraQuiz');
+})->name('quiz.sumatera');
 
-Route::get('/quiz/bali', function () {
-    return Inertia::render('quiz/BaliQuiz');
-})->name('quiz.bali');
-
-Route::get('/quiz/sumatera-barat', function () {
-    return Inertia::render('quiz/SumateraBaratQuiz');
-})->name('quiz.sumatera-barat');
-
-Route::get('/quiz/yogyakarta', function () {
-    return Inertia::render('quiz/YogyakartaQuiz');
-})->name('quiz.yogyakarta');
-
-Route::get('/quiz/papua', function () {
-    return Inertia::render('quiz/PapuaQuiz');
-})->name('quiz.papua');
-
-Route::get('/quiz/sulawesi-selatan', function () {
-    return Inertia::render('quiz/SulawesiSelatanQuiz');
-})->name('quiz.sulawesi-selatan');
+Route::get('/quiz/jawa', function () {
+    return Inertia::render('quiz/JavaQuiz');
+})->name('quiz.jawa');
 
 Route::get('/quiz/kalimantan', function () {
     return Inertia::render('quiz/KalimantanQuiz');
 })->name('quiz.kalimantan');
+
+Route::get('/quiz/sulawesi', function () {
+    return Inertia::render('quiz/SulawesiQuiz');
+})->name('quiz.sulawesi');
+
+Route::get('/quiz/papua', function () {
+    return Inertia::render('quiz/PapuaQuiz');
+})->name('quiz.papua');
 
 Route::get('/quiz/indonesia', function () {
     return Inertia::render('quiz/IndonesiaQuiz');

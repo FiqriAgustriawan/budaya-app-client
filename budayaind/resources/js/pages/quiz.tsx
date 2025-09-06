@@ -1,96 +1,74 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Brain, Trophy, Users, Clock, Play, BookOpen, Building2, Flower, Home, Crown, Feather, Mountain, Trees, Flag } from 'lucide-react';
+import { ArrowLeft, Brain, Trophy, Users, Clock, Play, BookOpen, Building2, Crown, Feather, Mountain, Trees, Flag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 
-// Data provinsi untuk quiz
-const provinces = [
+// Data pulau-pulau untuk quiz
+const islands = [
     {
-        id: 'jawa-tengah',
-        name: 'Jawa Tengah',
-        description: 'Budaya Jawa klasik, batik, dan tradisi keraton',
+        id: 'sumatera',
+        name: 'Pulau Sumatera',
+        description: 'Keragaman budaya dari Aceh hingga Lampung',
+        difficulty: 'Menengah',
+        questions: 25,
+        time: 20,
+        image: '/images/sumatera.jpg',
+        color: 'from-orange-500 to-red-500',
+        icon: Mountain
+    },
+    {
+        id: 'jawa',
+        name: 'Pulau Jawa',
+        description: 'Pusat peradaban dengan budaya Jawa, Sunda, dan Betawi',
         difficulty: 'Mudah',
-        questions: 20,
-        time: 15,
-        image: '/public/images/tongkonan.jpg', // Gambar: Candi Borobudur/Prambanan, Batik, Keraton Solo/Yogya
+        questions: 25,
+        time: 20,
+        image: '/images/jawa.jpg',
         color: 'from-amber-400 to-orange-500',
         icon: Building2
     },
     {
-        id: 'bali',
-        name: 'Bali',
-        description: 'Seni, tarian, dan tradisi Hindu-Bali',
-        difficulty: 'Mudah',
-        questions: 20,
-        time: 15,
-        image: '/images/bali.jpg', // Gambar: Pura Tanah Lot, Penari Legong, Padi Terrasering Jatiluwih
-        color: 'from-emerald-400 to-teal-500',
-        icon: Flower
-    },
-    {
-        id: 'sumatera-barat',
-        name: 'Sumatera Barat',
-        description: 'Budaya Minangkabau dan tradisi matrilineal',
-        difficulty: 'Mudah',
-        questions: 20,
-        time: 15,
-        image: '/images/sumbar.jpg', // Gambar: Rumah Gadang, Danau Maninjau, Rendang/Masakan Padang
-        color: 'from-red-400 to-pink-500',
-        icon: Home
-    },
-    {
-        id: 'yogyakarta',
-        name: 'DI Yogyakarta',
-        description: 'Kota budaya dengan warisan sultan dan tradisi',
-        difficulty: 'Mudah',
-        questions: 20,
-        time: 15,
-        image: '/images/yogya.jpg', // Gambar: Keraton Yogyakarta, Malioboro, Gudeg, Tugu Yogya
-        color: 'from-blue-400 to-indigo-500',
-        icon: Crown
-    },
-    {
-        id: 'papua',
-        name: 'Papua',
-        description: 'Budaya asli Papua dan tradisi suku-suku',
-        difficulty: 'Sulit',
-        questions: 25,
-        time: 20,
-        image: '/images/papua.jpg', // Gambar: Cendrawasih, Suku Dani, Pegunungan Jayawijaya, Honai
-        color: 'from-purple-400 to-violet-500',
-        icon: Feather
-    },
-    {
-        id: 'sulawesi-selatan',
-        name: 'Sulawesi Selatan',
-        description: 'Budaya Bugis, Makassar, dan Toraja',
-        difficulty: 'Menengah',
-        questions: 25,
-        time: 20,
-        image: '/images/tongkonan.jpg', // Gambar: Rumah Tongkonan, Kapal Pinisi, Benteng Rotterdam
-        color: 'from-cyan-400 to-blue-500',
-        icon: Mountain
-    },
-    {
         id: 'kalimantan',
-        name: 'Kalimantan',
-        description: 'Budaya Dayak dan tradisi sungai',
+        name: 'Pulau Kalimantan',
+        description: 'Budaya Dayak dan hutan hujan tropis Borneo',
         difficulty: 'Menengah',
         questions: 25,
         time: 20,
-        image: '/images/kalimantan.jpg', // Gambar: Rumah Betang, Orangutan, Sungai Mahakam, Dayak Dance
+        image: '/images/kalimantan.jpg',
         color: 'from-green-400 to-emerald-500',
         icon: Trees
     },
     {
+        id: 'sulawesi',
+        name: 'Pulau Sulawesi',
+        description: 'Pertemuan budaya Bugis, Makassar, Toraja, dan Minahasa',
+        difficulty: 'Menengah',
+        questions: 25,
+        time: 20,
+        image: '/images/sulawesi.jpg',
+        color: 'from-cyan-400 to-blue-500',
+        icon: Crown
+    },
+    {
+        id: 'papua',
+        name: 'Pulau Papua',
+        description: 'Keanekaragaman suku dan budaya asli Melanesia',
+        difficulty: 'Sulit',
+        questions: 25,
+        time: 20,
+        image: '/images/papua.jpg',
+        color: 'from-purple-400 to-violet-500',
+        icon: Feather
+    },
+    {
         id: 'indonesia',
-        name: 'Indonesia',
-        description: 'Pengetahuan umum budaya Indonesia',
+        name: 'Nusantara',
+        description: 'Pengetahuan umum budaya seluruh Indonesia',
         difficulty: 'Sulit',
         questions: 30,
         time: 25,
-        image: '/images/indonesia.jpg', // Gambar: Garuda Pancasila, Tari Saman, Wayang, Bendera Merah Putih
+        image: '/images/indonesia.jpg',
         color: 'from-red-500 to-red-600',
         icon: Flag
     }
@@ -143,42 +121,36 @@ function QuizContent() {
         }
     };
 
-    const handleStartQuiz = (provinceId: string) => {
-        // Route to specific province quiz pages
-        switch (provinceId) {
-            case 'jawa-tengah':
-                router.visit(route('quiz.jawa-tengah'));
+    const handleStartQuiz = (islandId: string) => {
+        // Route to specific island quiz pages
+        switch (islandId) {
+            case 'sumatera':
+                router.visit(route('quiz.sumatera'));
                 break;
-            case 'bali':
-                router.visit(route('quiz.bali'));
-                break;
-            case 'sumatera-barat':
-                router.visit(route('quiz.sumatera-barat'));
-                break;
-            case 'yogyakarta':
-                router.visit(route('quiz.yogyakarta'));
-                break;
-            case 'papua':
-                router.visit(route('quiz.papua'));
-                break;
-            case 'sulawesi-selatan':
-                router.visit(route('quiz.sulawesi-selatan'));
+            case 'jawa':
+                router.visit(route('quiz.jawa'));
                 break;
             case 'kalimantan':
                 router.visit(route('quiz.kalimantan'));
+                break;
+            case 'sulawesi':
+                router.visit(route('quiz.sulawesi'));
+                break;
+            case 'papua':
+                router.visit(route('quiz.papua'));
                 break;
             case 'indonesia':
                 router.visit(route('quiz.indonesia'));
                 break;
             default:
-                setSelectedProvince(provinceId);
+                setSelectedProvince(islandId);
                 setShowQuizModal(true);
         }
     };
 
     return (
         <>
-            <Head title="Quiz Budaya - BudayaInd">
+            <Head title="Quiz Budaya Pulau - BudayaInd">
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -211,11 +183,11 @@ function QuizContent() {
                                     <h1 className={`text-xl font-bold font-space-grotesk ${
                                         isDarkMode ? 'text-white' : 'text-slate-900'
                                     }`}>
-                                        Quiz Budaya Indonesia
+                                        Quiz Budaya Pulau Indonesia
                                     </h1>
                                     <p className={`text-sm ${
                                         isDarkMode ? 'text-slate-400' : 'text-slate-600'
-                                    }`}>Uji pengetahuan budaya nusantara</p>
+                                    }`}>Uji pengetahuan budaya pulau nusantara</p>
                                 </div>
                             </div>
                         </div>
@@ -246,7 +218,7 @@ function QuizContent() {
                                     <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>Quiz</span>
                                     <br />
                                     <span className="text-transparent bg-gradient-to-r from-[#a4773e] to-[#d4a574] bg-clip-text">
-                                        Budaya
+                                        Pulau
                                     </span>
                                     <br />
                                     <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>Nusantara</span>
@@ -256,7 +228,7 @@ function QuizContent() {
                             <p className={`text-xl leading-relaxed max-w-3xl mx-auto ${
                                 isDarkMode ? 'text-gray-300' : 'text-gray-600'
                             }`}>
-                                Pilih provinsi dan uji seberapa dalam pengetahuan Anda tentang kekayaan budaya Indonesia
+                                Pilih pulau dan uji seberapa dalam pengetahuan Anda tentang kekayaan budaya pulau-pulau Indonesia
                             </p>
                         </div>
 
@@ -313,44 +285,44 @@ function QuizContent() {
                         </div>
                     </div>
 
-                    {/* Province Selection */}
+                    {/* Island Selection */}
                     <div className="space-y-8">
                         <div className="text-center">
                             <h2 className={`text-3xl font-bold mb-4 font-space-grotesk ${
                                 isDarkMode ? 'text-white' : 'text-gray-900'
                             }`}>
-                                Pilih <span className="text-transparent bg-gradient-to-r from-[#a4773e] to-[#d4a574] bg-clip-text">Provinsi</span>
+                                Pilih <span className="text-transparent bg-gradient-to-r from-[#a4773e] to-[#d4a574] bg-clip-text">Pulau</span>
                             </h2>
                             <p className={`text-lg ${
                                 isDarkMode ? 'text-gray-300' : 'text-gray-600'
                             }`}>
-                                Setiap provinsi memiliki tantangan dan tingkat kesulitan yang berbeda
+                                Setiap pulau memiliki tantangan dan keragaman budaya yang berbeda
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {provinces.map((province) => (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {islands.map((island) => (
                                 <div
-                                    key={province.id}
+                                    key={island.id}
                                     className={`group backdrop-blur-xl rounded-2xl border transition-all duration-300 hover:transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl overflow-hidden ${
                                         isDarkMode
                                             ? 'border-gray-600/50 hover:border-gray-500/70'
                                             : 'border-gray-300/50 hover:border-gray-400/70'
                                     }`}
-                                    onClick={() => handleStartQuiz(province.id)}
+                                    onClick={() => handleStartQuiz(island.id)}
                                 >
-                                    {/* Province Image Header */}
+                                    {/* Island Image Header */}
                                     <div className="relative h-32 bg-gradient-to-br from-gray-100 via-gray-50 to-white overflow-hidden">
                                         {/* Background Pattern */}
                                         <div className="absolute inset-0 opacity-20">
-                                            <div className={`w-full h-full bg-gradient-to-br ${province.color}`}></div>
+                                            <div className={`w-full h-full bg-gradient-to-br ${island.color}`}></div>
                                         </div>
 
-                                        {/* Actual Province Image */}
-                                        {province.image && (
+                                        {/* Actual Island Image */}
+                                        {island.image && (
                                             <img
-                                                src={province.image}
-                                                alt={`${province.name} cultural imagery`}
+                                                src={island.image}
+                                                alt={`${island.name} cultural imagery`}
                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                                                 onError={(e) => {
                                                     // Fallback to placeholder if image fails to load
@@ -366,10 +338,10 @@ function QuizContent() {
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <div className="text-center">
                                                 <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
-                                                    <province.icon className="w-8 h-8 text-gray-700" />
+                                                    <island.icon className="w-8 h-8 text-gray-700" />
                                                 </div>
-                                                <div className={`px-3 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-medium border shadow-sm ${getDifficultyColor(province.difficulty)}`}>
-                                                    {province.difficulty}
+                                                <div className={`px-3 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-medium border shadow-sm ${getDifficultyColor(island.difficulty)}`}>
+                                                    {island.difficulty}
                                                 </div>
                                             </div>
                                         </div>
@@ -380,18 +352,18 @@ function QuizContent() {
 
                                     {/* Card Content */}
                                     <div className="p-6">
-                                        {/* Province Name */}
+                                        {/* Island Name */}
                                         <h3 className={`font-bold text-lg mb-2 font-space-grotesk ${
                                             isDarkMode ? 'text-white' : 'text-gray-900'
                                         }`}>
-                                            {province.name}
+                                            {island.name}
                                         </h3>
 
                                         {/* Description */}
                                         <p className={`text-sm mb-4 line-clamp-2 ${
                                             isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                         }`}>
-                                            {province.description}
+                                            {island.description}
                                         </p>
 
                                         {/* Quiz Info */}
@@ -402,7 +374,7 @@ function QuizContent() {
                                                         isDarkMode ? 'text-gray-400' : 'text-gray-500'
                                                     }`} />
                                                     <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                                        {province.questions} soal
+                                                        {island.questions} soal
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center">
@@ -410,14 +382,14 @@ function QuizContent() {
                                                         isDarkMode ? 'text-gray-400' : 'text-gray-500'
                                                     }`} />
                                                     <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                                        {province.time} menit
+                                                        {island.time} menit
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Start Button */}
-                                        <button className={`w-full py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r ${province.color} text-white hover:shadow-lg flex items-center justify-center group-hover:from-[#a4773e] group-hover:to-[#d4a574]`}>
+                                        <button className={`w-full py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r ${island.color} text-white hover:shadow-lg flex items-center justify-center group-hover:from-[#a4773e] group-hover:to-[#d4a574]`}>
                                             <Play className="w-4 h-4 mr-2" />
                                             Mulai Quiz
                                         </button>
@@ -496,24 +468,24 @@ function QuizContent() {
                                 : 'border-gray-200/70'
                         }`}>
                             {(() => {
-                                const province = provinces.find(p => p.id === selectedProvince);
-                                if (!province) return null;
+                                const island = islands.find(i => i.id === selectedProvince);
+                                if (!island) return null;
 
                                 return (
                                     <>
                                         <div className="text-center mb-6">
                                             <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                                <province.icon className="w-8 h-8 text-gray-700" />
+                                                <island.icon className="w-8 h-8 text-gray-700" />
                                             </div>
                                             <h3 className={`text-2xl font-bold font-space-grotesk mb-2 ${
                                                 isDarkMode ? 'text-white' : 'text-gray-900'
                                             }`}>
-                                                Quiz {province.name}
+                                                Quiz {island.name}
                                             </h3>
                                             <p className={`text-sm ${
                                                 isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                             }`}>
-                                                {province.description}
+                                                {island.description}
                                             </p>
                                         </div>
 
@@ -525,7 +497,7 @@ function QuizContent() {
                                                 <span className={`font-semibold ${
                                                     isDarkMode ? 'text-white' : 'text-gray-900'
                                                 }`}>
-                                                    {province.questions} soal
+                                                    {island.questions} soal
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -535,15 +507,15 @@ function QuizContent() {
                                                 <span className={`font-semibold ${
                                                     isDarkMode ? 'text-white' : 'text-gray-900'
                                                 }`}>
-                                                    {province.time} menit
+                                                    {island.time} menit
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                                                     Tingkat:
                                                 </span>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(province.difficulty)}`}>
-                                                    {province.difficulty}
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(island.difficulty)}`}>
+                                                    {island.difficulty}
                                                 </span>
                                             </div>
                                         </div>
@@ -562,7 +534,7 @@ function QuizContent() {
                                             <button
                                                 onClick={() => {
                                                     // Implement quiz start logic here
-                                                    console.log('Starting quiz for:', province.name);
+                                                    console.log('Starting quiz for:', island.name);
                                                     setShowQuizModal(false);
                                                 }}
                                                 className="flex-1 px-4 py-3 bg-gradient-to-r from-[#a4773e] to-[#d4a574] text-white rounded-xl font-medium hover:from-[#8b6635] hover:to-[#a4773e] transition-all duration-300 flex items-center justify-center"

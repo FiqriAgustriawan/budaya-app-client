@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { QuizConfig, QuizAnswer, QuizState } from '@/types/quiz';
-import { Clock, Heart, Lightbulb, Check, X, SkipForward, Pause, Play } from 'lucide-react';
+import { Clock, Lightbulb, Check, X, Pause, Play } from 'lucide-react';
 
 interface QuizGameProps {
     config: QuizConfig;
@@ -9,22 +9,71 @@ interface QuizGameProps {
 }
 
 export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
+    // Semua hooks harus dipanggil terlebih dahulu
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<QuizAnswer[]>([]);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showExplanation, setShowExplanation] = useState(false);
-    const [timeRemaining, setTimeRemaining] = useState(config.timeLimit * 60); // Convert to seconds
-    const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number | null>(null);
+    const [timeRemaining, setTimeRemaining] = useState(config?.timeLimit ? config.timeLimit * 60 : 0);
     const [state, setState] = useState<QuizState>('active');
     const [showHint, setShowHint] = useState(false);
-    const [lives, setLives] = useState(3);
-    const [streak, setStreak] = useState(0);
-    const [totalScore, setTotalScore] = useState(0);
+    // State untuk menyimpan jawaban sementara untuk setiap soal
+    const [tempAnswers, setTempAnswers] = useState<Map<number, number | null>>(new Map());
+    // State untuk countdown timer per soal
+    const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number>(30);
 
-    const currentQuestion = config.questions[currentQuestionIndex];
-    const progress = (currentQuestionIndex / config.questions.length) * 100;
+    // Callback functions
+    const finishQuiz = useCallback(() => {
+        setState('completed');
+        // Convert tempAnswers to final answers
+        const finalAnswers: QuizAnswer[] = [];
+        config.questions.forEach((question, index) => {
+            const selectedAnswer = tempAnswers.get(index);
+            const isCorrect = selectedAnswer === question.correctAnswer;
+            const answer: QuizAnswer = {
+                questionId: question.id,
+                selectedAnswer: selectedAnswer ?? -1,
+                isCorrect,
+                timeSpent: 0,
+                pointsEarned: question.points ? (isCorrect ? question.points : 0) : undefined
+            };
+            finalAnswers.push(answer);
+        });
 
-    // Timer untuk keseluruhan quiz
+        const finalScore = finalAnswers.reduce((sum, answer) => sum + (answer.pointsEarned || 0), 0);
+        onComplete(finalAnswers, finalScore);
+    }, [tempAnswers, config.questions, onComplete]);
+
+    const nextQuestion = useCallback(() => {
+        if (config?.questions && currentQuestionIndex < config.questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setSelectedOption(null);
+            setShowExplanation(false);
+            setShowHint(false);
+            setQuestionTimeRemaining(30); // Reset timer
+        } else {
+            finishQuiz();
+        }
+    }, [currentQuestionIndex, config?.questions, finishQuiz]);
+
+    const handleSubmitAnswer = useCallback((answerIndex: number | null) => {
+        if (showExplanation || !config?.questions) return;
+
+        const currentQuestion = config.questions[currentQuestionIndex];
+        if (!currentQuestion) return;
+
+        // Simpan jawaban sementara
+        setTempAnswers(prev => new Map(prev.set(currentQuestionIndex, answerIndex)));
+
+        setSelectedOption(answerIndex);
+        setShowExplanation(true);
+
+        // Langsung lanjut ke soal berikutnya tanpa delay
+        setTimeout(() => {
+            nextQuestion();
+        }, 2000); // Hanya 2 detik untuk melihat penjelasan
+    }, [showExplanation, config?.questions, currentQuestionIndex, nextQuestion]);
+
+    // Effects
     useEffect(() => {
         if (state !== 'active') return;
 
@@ -41,92 +90,32 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
         return () => clearInterval(timer);
     }, [state]);
 
-    // Timer untuk pertanyaan individual
+    // Question countdown timer effect
     useEffect(() => {
-        if (!currentQuestion?.timeLimit || state !== 'active') return;
+        if (state !== 'active' || showExplanation) return;
 
-        setQuestionTimeRemaining(currentQuestion.timeLimit);
+        setQuestionTimeRemaining(30); // Reset timer untuk setiap soal baru
 
-        const timer = setInterval(() => {
+        const questionTimer = setInterval(() => {
             setQuestionTimeRemaining((prev) => {
-                if (prev === null || prev <= 1) {
-                    // Auto submit when time runs out
-                    handleSubmitAnswer(null);
-                    return null;
+                if (prev <= 1) {
+                    // Waktu habis, auto lanjut ke soal berikutnya
+                    nextQuestion();
+                    return 30;
                 }
                 return prev - 1;
             });
         }, 1000);
 
-        return () => clearInterval(timer);
-    }, [currentQuestionIndex, state, currentQuestion?.timeLimit, handleSubmitAnswer]);
+        return () => clearInterval(questionTimer);
+    }, [currentQuestionIndex, state, showExplanation, nextQuestion]);
 
+    // Utility functions
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
-
-    const handleSubmitAnswer = useCallback((answerIndex: number | null) => {
-        if (showExplanation) return;
-
-        const isCorrect = answerIndex === currentQuestion.correctAnswer;
-        const timeSpent = currentQuestion.timeLimit
-            ? currentQuestion.timeLimit - (questionTimeRemaining || 0)
-            : 0;
-
-        let pointsEarned = 0;
-        if (isCorrect) {
-            pointsEarned = currentQuestion.points;
-            // Bonus points for speed
-            if (questionTimeRemaining && questionTimeRemaining > currentQuestion.timeLimit! * 0.7) {
-                pointsEarned += Math.floor(currentQuestion.points * 0.2);
-            }
-            setStreak(prev => prev + 1);
-        } else {
-            setLives(prev => prev - 1);
-            setStreak(0);
-        }
-
-        const answer: QuizAnswer = {
-            questionId: currentQuestion.id,
-            selectedAnswer: answerIndex ?? -1,
-            isCorrect,
-            timeSpent,
-            pointsEarned
-        };
-
-        setAnswers(prev => [...prev, answer]);
-        setTotalScore(prev => prev + pointsEarned);
-        setSelectedOption(answerIndex);
-        setShowExplanation(true);
-
-        // Auto proceed after showing explanation
-        setTimeout(() => {
-            if (currentQuestionIndex < config.questions.length - 1) {
-                nextQuestion();
-            } else {
-                finishQuiz();
-            }
-        }, 3000);
-    }, [currentQuestion, questionTimeRemaining, currentQuestionIndex, config.questions.length, showExplanation]);
-
-    const finishQuiz = useCallback(() => {
-        setState('completed');
-        const finalScore = answers.reduce((sum, answer) => sum + answer.pointsEarned, 0);
-        onComplete(answers, finalScore);
-    }, [answers, onComplete]);
-
-    const nextQuestion = useCallback(() => {
-        if (currentQuestionIndex < config.questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-            setSelectedOption(null);
-            setShowExplanation(false);
-            setShowHint(false);
-        } else {
-            finishQuiz();
-        }
-    }, [currentQuestionIndex, config.questions.length, finishQuiz]);
 
     const togglePause = () => {
         setState(prev => prev === 'active' ? 'paused' : 'active');
@@ -134,26 +123,112 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
 
     const handleOptionClick = (optionIndex: number) => {
         if (showExplanation || selectedOption !== null) return;
+        setQuestionTimeRemaining(0); // Stop countdown saat user pilih jawaban
         handleSubmitAnswer(optionIndex);
     };
 
+    // Safety checks setelah hooks
+    if (!config || !config.questions || config.questions.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">Error: Quiz tidak ditemukan</h2>
+                    <p className="text-gray-600 mb-4">Data quiz tidak tersedia atau rusak.</p>
+                    <button
+                        onClick={onExit}
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                        Kembali
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const currentQuestion = config.questions[currentQuestionIndex];
+
+    if (!currentQuestion) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">Error: Soal tidak ditemukan</h2>
+                    <p className="text-gray-600 mb-4">Soal quiz dengan index {currentQuestionIndex} tidak tersedia.</p>
+                    <button
+                        onClick={onExit}
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                        Kembali
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const progress = (currentQuestionIndex / config.questions.length) * 100;
+
     if (state === 'completed') {
+        // Hitung statistik dari tempAnswers - semua soal yang tidak dijawab dianggap salah
+        let correctAnswers = 0;
+        const totalQuestions = config.questions.length;
+
+        config.questions.forEach((question, index) => {
+            const selectedAnswer = tempAnswers.get(index);
+            if (selectedAnswer !== undefined && selectedAnswer !== null && selectedAnswer === question.correctAnswer) {
+                correctAnswers++;
+            }
+        });
+
+        const wrongAnswers = totalQuestions - correctAnswers;
+
         return (
             <div className="min-h-screen flex items-center justify-center p-4"
                  style={{ background: config.theme.backgroundColor }}>
                 <div className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-2xl p-8 text-center">
-                    <div className="text-6xl mb-4">{config.theme.icon}</div>
-                    <h2 className="text-2xl font-bold mb-4">Quiz Selesai!</h2>
-                    <div className="space-y-2 mb-6">
-                        <p>Skor: {totalScore}</p>
-                        <p>Benar: {answers.filter(a => a.isCorrect).length}/{config.questions.length}</p>
-                        <p>Akurasi: {Math.round((answers.filter(a => a.isCorrect).length / config.questions.length) * 100)}%</p>
+                    <h2 className="text-3xl font-bold text-green-600 mb-6">Quiz Selesai!</h2>
+
+                    {/* Detailed Statistics */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                            <div className="text-2xl font-bold text-green-600 mb-1">{correctAnswers}</div>
+                            <div className="text-sm font-medium text-green-700">Jawaban Benar</div>
+                        </div>
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                            <div className="text-2xl font-bold text-red-600 mb-1">{wrongAnswers}</div>
+                            <div className="text-sm font-medium text-red-700">Jawaban Salah</div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                        <div className="flex justify-between">
+                            <span>Total Soal:</span>
+                            <span className="font-bold text-gray-700">
+                                {totalQuestions}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Terjawab:</span>
+                            <span className="font-bold text-gray-700">
+                                {tempAnswers.size}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Tidak Dijawab:</span>
+                            <span className="font-bold text-red-600">
+                                {totalQuestions - tempAnswers.size}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Akurasi:</span>
+                            <span className="font-bold">
+                                {Math.round((correctAnswers / totalQuestions) * 100)}%
+                            </span>
+                        </div>
                     </div>
                     <button
                         onClick={onExit}
-                        className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium"
+                        className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
-                        Kembali ke Menu
+                        Selesai
                     </button>
                 </div>
             </div>
@@ -165,85 +240,66 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
              style={{ background: config.theme.backgroundColor }}>
 
             {/* Background Pattern */}
-            {config.theme.backgroundImage && (
-                <div
-                    className="absolute inset-0 opacity-10"
-                    style={{
-                        backgroundImage: `url(${config.theme.backgroundImage})`,
-                        backgroundRepeat: 'repeat',
-                        backgroundSize: '200px'
-                    }}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0"
+                     style={{
+                         backgroundImage: `radial-gradient(circle at 25% 25%, ${config.theme.primaryColor} 0%, transparent 50%),
+                                         radial-gradient(circle at 75% 75%, ${config.theme.secondaryColor} 0%, transparent 50%)`
+                     }}
                 />
-            )}
+            </div>
 
             {/* Header */}
-            <header className="relative z-10 p-4 bg-black/20 backdrop-blur-sm">
-                <div className="flex items-center justify-between max-w-4xl mx-auto">
-                    <div className="flex items-center space-x-4">
-                        <div className="text-2xl">{config.theme.icon}</div>
-                        <div>
-                            <h1 className="text-white font-bold">{config.name}</h1>
-                            <p className="text-white/70 text-sm">
-                                Soal {currentQuestionIndex + 1} dari {config.questions.length}
-                            </p>
-                        </div>
-                    </div>
+            <div className="relative z-10 p-4 bg-white/10 backdrop-blur-md border-b border-white/20">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                    <button
+                        onClick={onExit}
+                        className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors"
+                    >
+                        <X className="w-6 h-6" />
+                        <span>Keluar</span>
+                    </button>
 
-                    <div className="flex items-center space-x-4">
-                        {/* Lives */}
-                        <div className="flex items-center space-x-1">
-                            {[...Array(3)].map((_, i) => (
-                                <Heart
-                                    key={i}
-                                    className={`w-5 h-5 ${i < lives ? 'text-red-500 fill-current' : 'text-gray-400'}`}
-                                />
-                            ))}
-                        </div>
-
+                    <div className="flex items-center space-x-6">
                         {/* Timer */}
                         <div className="flex items-center space-x-2 text-white">
                             <Clock className="w-5 h-5" />
-                            <span className="font-mono">{formatTime(timeRemaining)}</span>
+                            <span className="font-mono text-lg">{formatTime(timeRemaining)}</span>
                         </div>
 
-                        {/* Pause/Resume */}
+                        {/* Pause/Play */}
                         <button
                             onClick={togglePause}
-                            className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30 transition-colors"
+                            className="text-white hover:text-white/80 transition-colors"
                         >
-                            {state === 'paused' ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                        </button>
-
-                        {/* Exit */}
-                        <button
-                            onClick={onExit}
-                            className="px-4 py-2 bg-red-500/80 text-white rounded-lg hover:bg-red-600/80 transition-colors"
-                        >
-                            Keluar
+                            {state === 'paused' ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
                         </button>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="max-w-4xl mx-auto mt-4">
+                    <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+                        <span>Soal {currentQuestionIndex + 1} dari {config.questions.length}</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
                     <div className="w-full bg-white/20 rounded-full h-2">
                         <div
-                            className="h-2 bg-gradient-to-r from-yellow-400 to-green-500 rounded-full transition-all duration-300"
+                            className="bg-white rounded-full h-2 transition-all duration-300"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
                 </div>
-            </header>
+            </div>
 
-            {/* Pause Overlay */}
             {state === 'paused' && (
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-20 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-8 text-center">
-                        <Pause className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-                        <h2 className="text-2xl font-bold mb-4">Quiz Dijeda</h2>
+                        <Pause className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                        <h3 className="text-2xl font-bold mb-4">Quiz Dijeda</h3>
                         <button
                             onClick={togglePause}
-                            className="px-6 py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors"
+                            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                         >
                             Lanjutkan
                         </button>
@@ -252,195 +308,169 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
             )}
 
             {/* Main Content */}
-            <main className="relative z-10 max-w-4xl mx-auto p-6">
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 shadow-xl">
-                    {/* Question Timer */}
-                    {questionTimeRemaining && (
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Waktu tersisa untuk soal ini:</span>
-                                <span className="font-mono font-bold text-red-600">
-                                    {formatTime(questionTimeRemaining)}
-                                </span>
+            <div className="relative z-10 p-4 pt-8">
+                <div className="max-w-4xl mx-auto">
+                    {/* Question Card */}
+                    <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 mb-6 shadow-xl">
+                        <div className="flex items-start justify-between mb-6">
+                            <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-4">
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                        {currentQuestion.category}
+                                    </span>
+                                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                        {currentQuestion.difficulty}
+                                    </span>
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4 leading-relaxed">
+                                    {currentQuestion.question}
+                                </h2>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="h-2 bg-gradient-to-r from-green-500 to-red-500 rounded-full transition-all duration-1000"
-                                    style={{
-                                        width: `${((questionTimeRemaining) / (currentQuestion.timeLimit || 1)) * 100}%`
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Score & Streak */}
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="text-2xl font-bold" style={{ color: config.theme.primaryColor }}>
-                            Skor: {totalScore}
-                        </div>
-                        {streak > 1 && (
-                            <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                                🔥 Streak {streak}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Question */}
-                    <div className="mb-8">
-                        {/* Category & Difficulty */}
-                        <div className="flex items-center space-x-4 mb-4">
-                            <span
-                                className="px-3 py-1 rounded-full text-sm font-medium text-white"
-                                style={{ backgroundColor: config.theme.primaryColor }}
-                            >
-                                {currentQuestion.category}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                currentQuestion.difficulty === 'mudah' ? 'bg-green-100 text-green-800' :
-                                currentQuestion.difficulty === 'menengah' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                            }`}>
-                                {currentQuestion.difficulty}
-                            </span>
-                            <span className="text-sm text-gray-600">
-                                {currentQuestion.points} poin
-                            </span>
-                        </div>
-
-                        {/* Question Text */}
-                        <h2 className="text-2xl font-bold mb-6 leading-relaxed">
-                            {currentQuestion.question}
-                        </h2>
-
-                        {/* Media */}
-                        {currentQuestion.image && (
-                            <div className="mb-6">
-                                <img
-                                    src={currentQuestion.image}
-                                    alt="Question illustration"
-                                    className="w-full max-w-md mx-auto rounded-lg shadow-lg"
-                                />
-                            </div>
-                        )}
-
-                        {currentQuestion.video && (
-                            <div className="mb-6">
-                                <video
-                                    src={currentQuestion.video}
-                                    controls
-                                    className="w-full max-w-md mx-auto rounded-lg shadow-lg"
-                                />
-                            </div>
-                        )}
-
-                        {currentQuestion.audio && (
-                            <div className="mb-6">
-                                <audio
-                                    src={currentQuestion.audio}
-                                    controls
-                                    className="w-full max-w-md mx-auto"
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Options */}
-                    <div className="space-y-4 mb-6">
-                        {currentQuestion.options.map((option, index) => {
-                            let buttonClass = "w-full p-4 text-left rounded-xl border-2 transition-all duration-300 font-medium ";
-
-                            if (showExplanation) {
-                                if (index === currentQuestion.correctAnswer) {
-                                    buttonClass += "border-green-500 bg-green-50 text-green-800";
-                                } else if (index === selectedOption) {
-                                    buttonClass += "border-red-500 bg-red-50 text-red-800";
-                                } else {
-                                    buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
-                                }
-                            } else {
-                                buttonClass += selectedOption === index
-                                    ? `border-2 bg-blue-50 text-blue-800`
-                                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50";
-                                buttonClass += " cursor-pointer";
-                            }
-
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleOptionClick(index)}
-                                    disabled={showExplanation}
-                                    className={buttonClass}
-                                    style={{
-                                        borderColor: selectedOption === index && !showExplanation
-                                            ? config.theme.primaryColor
-                                            : undefined
-                                    }}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <span>{option}</span>
-                                        {showExplanation && (
-                                            <div className="ml-4">
-                                                {index === currentQuestion.correctAnswer ? (
-                                                    <Check className="w-6 h-6 text-green-600" />
-                                                ) : index === selectedOption ? (
-                                                    <X className="w-6 h-6 text-red-600" />
-                                                ) : null}
-                                            </div>
-                                        )}
+                            {/* Question Timer */}
+                            {!showExplanation && (
+                                <div className="flex flex-col items-center space-y-2">
+                                    <div className="relative w-16 h-16">
+                                        <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 100 100">
+                                            {/* Background circle */}
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="40"
+                                                stroke="currentColor"
+                                                strokeWidth="8"
+                                                fill="transparent"
+                                                className="text-gray-200"
+                                            />
+                                            {/* Progress circle */}
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="40"
+                                                stroke="currentColor"
+                                                strokeWidth="8"
+                                                fill="transparent"
+                                                strokeDasharray={`${2 * Math.PI * 40}`}
+                                                strokeDashoffset={`${2 * Math.PI * 40 * (1 - questionTimeRemaining / 30)}`}
+                                                className={`transition-all duration-1000 ${
+                                                    questionTimeRemaining <= 5 ? 'text-red-500' : 'text-blue-500'
+                                                }`}
+                                                strokeLinecap="round"
+                                            />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className={`text-lg font-bold ${
+                                                questionTimeRemaining <= 5 ? 'text-red-500' : 'text-gray-700'
+                                            }`}>
+                                                {questionTimeRemaining}
+                                            </span>
+                                        </div>
                                     </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Hint */}
-                    {config.features.hasHints && currentQuestion.hint && !showExplanation && (
-                        <div className="mb-6">
-                            <button
-                                onClick={() => setShowHint(!showHint)}
-                                className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
-                            >
-                                <Lightbulb className="w-5 h-5" />
-                                <span>{showHint ? 'Sembunyikan Petunjuk' : 'Lihat Petunjuk'}</span>
-                            </button>
-                            {showHint && (
-                                <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <p className="text-blue-800">💡 {currentQuestion.hint}</p>
+                                    <span className="text-xs text-gray-500 font-medium">Otomatis Lanjut</span>
                                 </div>
                             )}
-                        </div>
-                    )}
 
-                    {/* Explanation */}
-                    {showExplanation && (
-                        <div className="mb-6">
-                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                <h3 className="font-semibold mb-2">Penjelasan:</h3>
-                                <p className="text-gray-700">{currentQuestion.explanation}</p>
+                        </div>
+
+                        {/* Options */}
+                        <div className="grid gap-4">
+                            {currentQuestion.options.map((option, index) => {
+                                const isSelected = selectedOption === index;
+                                const isCorrect = index === currentQuestion.correctAnswer;
+
+                                let buttonClass = "w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ";
+
+                                if (showExplanation) {
+                                    if (isCorrect) {
+                                        buttonClass += "border-green-500 bg-green-50 text-green-800";
+                                    } else if (isSelected) {
+                                        buttonClass += "border-red-500 bg-red-50 text-red-800";
+                                    } else {
+                                        buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
+                                    }
+                                } else {
+                                    buttonClass += "border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-800";
+                                }
+
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleOptionClick(index)}
+                                        disabled={showExplanation}
+                                        className={buttonClass}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center font-bold">
+                                                {String.fromCharCode(65 + index)}
+                                            </div>
+                                            <span className="flex-1 text-lg">{option}</span>
+                                            {showExplanation && isCorrect && (
+                                                <Check className="w-6 h-6 text-green-600" />
+                                            )}
+                                            {showExplanation && isSelected && !isCorrect && (
+                                                <X className="w-6 h-6 text-red-600" />
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Explanation */}
+                        {showExplanation && currentQuestion.explanation && (
+                            <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                                <div className="flex items-start space-x-2">
+                                    <Lightbulb className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="font-semibold text-blue-800 mb-2">Penjelasan:</h4>
+                                        <p className="text-blue-700">{currentQuestion.explanation}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Next Button */}
-                    {showExplanation && (
-                        <div className="flex justify-end">
+                        {/* Hint Button */}
+                        {!showExplanation && currentQuestion.hint && (
+                            <div className="mt-6 flex justify-center">
+                                <button
+                                    onClick={() => setShowHint(!showHint)}
+                                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                    <Lightbulb className="w-5 h-5" />
+                                    <span>{showHint ? 'Sembunyikan Petunjuk' : 'Tampilkan Petunjuk'}</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Hint */}
+                        {showHint && currentQuestion.hint && (
+                            <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                                <div className="flex items-start space-x-2">
+                                    <Lightbulb className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="font-semibold text-yellow-800 mb-2">Petunjuk:</h4>
+                                        <p className="text-yellow-700">{currentQuestion.hint}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    {!showExplanation && (
+                        <div className="flex justify-center space-x-4">
+                            {/* Tombol Selesai Quiz - bisa dipanggil kapan saja */}
                             <button
-                                onClick={nextQuestion}
-                                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
-                                style={{
-                                    background: `linear-gradient(135deg, ${config.theme.primaryColor}, ${config.theme.secondaryColor})`
-                                }}
+                                onClick={finishQuiz}
+                                className="flex items-center space-x-2 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                             >
-                                <span>
-                                    {currentQuestionIndex < config.questions.length - 1 ? 'Soal Selanjutnya' : 'Selesai'}
-                                </span>
-                                <SkipForward className="w-5 h-5" />
+                                <Check className="w-5 h-5" />
+                                <span>Selesai Quiz</span>
                             </button>
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

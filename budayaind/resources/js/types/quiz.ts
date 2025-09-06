@@ -10,7 +10,7 @@ export interface QuizQuestion {
     audio?: string;
     video?: string;
     hint?: string;
-    points: number;
+    points?: number;
     timeLimit?: number; // in seconds
 }
 
@@ -19,7 +19,7 @@ export interface QuizAnswer {
     selectedAnswer: number;
     isCorrect: boolean;
     timeSpent: number;
-    pointsEarned: number;
+    pointsEarned?: number;
 }
 
 export interface QuizProgress {

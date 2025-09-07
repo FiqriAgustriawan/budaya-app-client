@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             TicketSeeder::class,
             OrderSeeder::class,
+            QuizQuestionsSeeder::class,
         ]);
     }
 }

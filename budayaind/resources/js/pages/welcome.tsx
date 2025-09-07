@@ -109,7 +109,7 @@ function WelcomeContent() {
 
                             {/* Quiz Link */}
                             <Link
-                                href={route('quiz')}
+                                href="/public-quiz"
                                 className={`px-4 py-2 font-medium transition-colors duration-300 rounded-xl flex items-center space-x-2 ${
                                     isDarkMode
                                         ? 'text-gray-300 hover:text-[#a4773e] hover:bg-gray-800/50'

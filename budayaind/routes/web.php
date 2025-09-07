@@ -143,6 +143,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::patch('/seller-requests/{sellerRequest}/approve', [SellerRequestController::class, 'approve'])->name('seller-requests.approve');
     Route::patch('/seller-requests/{sellerRequest}/reject', [SellerRequestController::class, 'reject'])->name('seller-requests.reject');
 
+    // NEW: Quiz Management for Admin
+    Route::get('/quiz', [\App\Http\Controllers\Admin\QuizController::class, 'index'])->name('quiz.index');
+    Route::get('/quiz/{quizQuestion}', [\App\Http\Controllers\Admin\QuizController::class, 'show'])->name('quiz.show');
+    Route::get('/quiz/{quizQuestion}/edit', [\App\Http\Controllers\Admin\QuizController::class, 'edit'])->name('quiz.edit');
+    Route::post('/quiz', [\App\Http\Controllers\Admin\QuizController::class, 'store'])->name('quiz.store');
+    Route::put('/quiz/{quizQuestion}', [\App\Http\Controllers\Admin\QuizController::class, 'update'])->name('quiz.update');
+    Route::delete('/quiz/{quizQuestion}', [\App\Http\Controllers\Admin\QuizController::class, 'destroy'])->name('quiz.destroy');
+
     // NEW: Withdrawal Management for Admin
     Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
     Route::get('/withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\WithdrawalController::class, 'show'])->name('withdrawals.show');
@@ -207,34 +215,40 @@ Route::get('/test-webhook-get/{orderNumber}', function ($orderNumber) {
     }
 });
 
-Route::get('/quiz', function () {
+Route::get('/public-quiz', function () {
     return Inertia::render('quiz');
-})->name('quiz');
+})->name('public.quiz');
 
 // Quiz Routes untuk setiap pulau
-Route::get('/quiz/sumatera', function () {
+Route::get('/public-quiz/sumatera', function () {
     return Inertia::render('quiz/SumateraQuiz');
-})->name('quiz.sumatera');
+})->name('public.quiz.sumatera');
 
-Route::get('/quiz/jawa', function () {
+Route::get('/public-quiz/jawa', function () {
     return Inertia::render('quiz/JavaQuiz');
-})->name('quiz.jawa');
+})->name('public.quiz.jawa');
 
-Route::get('/quiz/kalimantan', function () {
+Route::get('/public-quiz/kalimantan', function () {
     return Inertia::render('quiz/KalimantanQuiz');
-})->name('quiz.kalimantan');
+})->name('public.quiz.kalimantan');
 
-Route::get('/quiz/sulawesi', function () {
+Route::get('/public-quiz/sulawesi', function () {
     return Inertia::render('quiz/SulawesiQuiz');
-})->name('quiz.sulawesi');
+})->name('public.quiz.sulawesi');
 
-Route::get('/quiz/papua', function () {
+Route::get('/public-quiz/papua', function () {
     return Inertia::render('quiz/PapuaQuiz');
-})->name('quiz.papua');
+})->name('public.quiz.papua');
 
-Route::get('/quiz/indonesia', function () {
+Route::get('/public-quiz/indonesia', function () {
     return Inertia::render('quiz/IndonesiaQuiz');
-})->name('quiz.indonesia');
+})->name('public.quiz.indonesia');
+
+// API routes for quiz questions
+Route::prefix('api/quiz')->group(function () {
+    Route::get('/questions/{island}', [\App\Http\Controllers\QuizController::class, 'getQuestions'])->name('api.quiz.questions');
+    Route::get('/categories/{island}', [\App\Http\Controllers\QuizController::class, 'getCategories'])->name('api.quiz.categories');
+});
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/settings.php';

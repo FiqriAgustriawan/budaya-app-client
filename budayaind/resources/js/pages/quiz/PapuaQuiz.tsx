@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { QuizGame } from '@/components/quiz/QuizGame';
-import { papuaQuiz } from '@/data/quiz/papua';
-import { ArrowLeft, Play, Trophy, Target, CheckCircle, XCircle, RotateCcw, Home, Clock, Mountain, Trees, Compass, Globe } from 'lucide-react';
+import { useQuizData } from '@/hooks/useQuizData';
+import { ArrowLeft, Play, Trophy, Target, CheckCircle, XCircle, RotateCcw, Home, Clock, Mountain, Trees, Compass, Globe, Loader } from 'lucide-react';
 import { QuizAnswer } from '@/types/quiz';
 
 interface QuizResults {
@@ -11,6 +11,7 @@ interface QuizResults {
 }
 
 export default function PapuaQuiz() {
+    const { quizConfig, loading, error, refetch, refreshQuestions } = useQuizData('papua', 5);
     const [showGame, setShowGame] = useState(false);
     const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
 
@@ -25,9 +26,51 @@ export default function PapuaQuiz() {
         setShowGame(true);
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-900 via-red-800 to-amber-700 flex items-center justify-center">
+                <div className="text-center text-white">
+                    <Loader className="w-12 h-12 animate-spin mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Memuat Quiz...</h2>
+                    <p className="text-orange-200">Sedang mengambil soal quiz dari database</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || !quizConfig) {
+        return (
+            <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-900 via-red-800 to-amber-700 flex items-center justify-center">
+                <div className="text-center text-white max-w-md mx-auto p-8">
+                    <div className="bg-red-500/20 border border-red-400/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <XCircle className="w-10 h-10 text-red-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">Gagal Memuat Quiz</h2>
+                    <p className="text-orange-200 mb-6">{error || 'Tidak dapat memuat soal quiz'}</p>
+                    <div className="flex gap-4 justify-center">
+                        <button
+                            onClick={refetch}
+                            className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all duration-200"
+                        >
+                            Coba Lagi
+                        </button>
+                        <Link
+                            href="/public-quiz"
+                            className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-all duration-200"
+                        >
+                            Kembali
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (showGame) {
         return <QuizGame
-            config={papuaQuiz}
+            config={quizConfig}
             onExit={() => setShowGame(false)}
             onComplete={handleQuizComplete}
         />;
@@ -35,7 +78,7 @@ export default function PapuaQuiz() {
 
     // Quiz Results Screen
     if (quizResults) {
-        const totalQuestions = papuaQuiz.questions.length;
+        const totalQuestions = quizConfig.questions.length;
         const correctAnswers = quizResults.answers.filter(answer => answer.isCorrect).length;
         const wrongAnswers = totalQuestions - correctAnswers;
         const percentage = Math.round((correctAnswers / totalQuestions) * 100);
@@ -55,7 +98,7 @@ export default function PapuaQuiz() {
 
                     {/* Navigation */}
                     <div className="relative z-10 p-6">
-                        <Link href="/quiz"
+                        <Link href="/public-quiz"
                               className="flex items-center space-x-3 bg-black/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 text-white hover:bg-black/30 transition-all duration-300 group w-fit">
                             <Home size={20} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="font-medium">Kembali ke Quiz</span>
@@ -147,7 +190,7 @@ export default function PapuaQuiz() {
                                     <span>Ulangi Quiz</span>
                                 </button>
                                 <Link
-                                    href="/quiz"
+                                    href="/public-quiz"
                                     className="flex items-center justify-center space-x-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-3 text-white hover:bg-white/20 transition-all duration-300"
                                 >
                                     <Home size={20} />
@@ -198,7 +241,7 @@ export default function PapuaQuiz() {
                 {/* Navigation & Header */}
                 <div className="relative z-10">
                     <div className="flex items-center justify-between p-6 lg:p-8">
-                        <Link href="/quiz"
+                        <Link href="/public-quiz"
                               className="flex items-center space-x-3 bg-black/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 text-white hover:bg-black/30 transition-all duration-300 group">
                             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="font-medium">Kembali</span>
@@ -231,10 +274,10 @@ export default function PapuaQuiz() {
                                 <Mountain size={36} className="text-white" />
                             </div>
                             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                                {papuaQuiz.name}
+                                {quizConfig.name}
                             </h2>
                             <p className="text-xl text-green-100 max-w-2xl mx-auto leading-relaxed">
-                                {papuaQuiz.description}
+                                {quizConfig.description}
                             </p>
                         </div>
 
@@ -267,7 +310,7 @@ export default function PapuaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Clock size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-emerald-800 mb-1">{papuaQuiz.timeLimit}</div>
+                                        <div className="text-3xl font-bold text-emerald-800 mb-1">{Math.ceil(quizConfig.timeLimit / 60)}</div>
                                         <div className="text-sm font-medium text-emerald-600">Menit</div>
                                     </div>
 
@@ -275,7 +318,7 @@ export default function PapuaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Globe size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-orange-800 mb-1">{papuaQuiz.questions.length}</div>
+                                        <div className="text-3xl font-bold text-orange-800 mb-1">{quizConfig.questions.length}</div>
                                         <div className="text-sm font-medium text-orange-600">Pertanyaan</div>
                                     </div>
 
@@ -283,7 +326,7 @@ export default function PapuaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Trophy size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-yellow-800 mb-1">{papuaQuiz.passingScore}%</div>
+                                        <div className="text-3xl font-bold text-yellow-800 mb-1">{quizConfig.passingScore}%</div>
                                         <div className="text-sm font-medium text-yellow-600">Nilai Lulus</div>
                                     </div>
                                 </div>

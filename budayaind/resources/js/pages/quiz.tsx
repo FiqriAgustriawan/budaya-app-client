@@ -125,22 +125,22 @@ function QuizContent() {
         // Route to specific island quiz pages
         switch (islandId) {
             case 'sumatera':
-                router.visit(route('quiz.sumatera'));
+                router.visit(route('public.quiz.sumatera'));
                 break;
             case 'jawa':
-                router.visit(route('quiz.jawa'));
+                router.visit(route('public.quiz.jawa'));
                 break;
             case 'kalimantan':
-                router.visit(route('quiz.kalimantan'));
+                router.visit(route('public.quiz.kalimantan'));
                 break;
             case 'sulawesi':
-                router.visit(route('quiz.sulawesi'));
+                router.visit(route('public.quiz.sulawesi'));
                 break;
             case 'papua':
-                router.visit(route('quiz.papua'));
+                router.visit(route('public.quiz.papua'));
                 break;
             case 'indonesia':
-                router.visit(route('quiz.indonesia'));
+                router.visit(route('public.quiz.indonesia'));
                 break;
             default:
                 setSelectedProvince(islandId);

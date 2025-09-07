@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
             // Jika tidak ada kolom last_login_at, skip saja
         }
 
-        // Redirect based on user role
+       
         $user = Auth::user();
 
         if ($user && isset($user->role)) {
@@ -66,7 +66,7 @@ class AuthenticatedSessionController extends Controller
             }
         }
 
-        // Fallback jika tidak ada role
+
         return redirect()->intended('/dashboard');
     }
 

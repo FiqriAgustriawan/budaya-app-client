@@ -87,7 +87,11 @@ function WelcomeContent() {
                                             if (fallback) fallback.style.display = 'block';
                                         }}
                                     />
-                                    <span className="hidden text-white font-bold text-xl">BI</span>
+                                    <img
+                                        src="/logo-batik.svg"
+                                        alt="BudayaInd Logo"
+                                        className="w-8 h-8 object-contain text-white font-bold text-xl"
+                                    />
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#a4773e]/20 to-[#d4a574]/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </div>
@@ -105,7 +109,7 @@ function WelcomeContent() {
 
                             {/* Quiz Link */}
                             <Link
-                                href={route('quiz')}
+                                href="/public-quiz"
                                 className={`px-4 py-2 font-medium transition-colors duration-300 rounded-xl flex items-center space-x-2 ${
                                     isDarkMode
                                         ? 'text-gray-300 hover:text-[#a4773e] hover:bg-gray-800/50'

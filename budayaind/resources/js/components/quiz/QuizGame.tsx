@@ -13,7 +13,7 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showExplanation, setShowExplanation] = useState(false);
-    const [timeRemaining, setTimeRemaining] = useState(config?.timeLimit ? config.timeLimit * 60 : 0);
+    const [timeRemaining, setTimeRemaining] = useState(config?.timeLimit ? config.timeLimit * 60 : 1200);
     const [state, setState] = useState<QuizState>('active');
     const [showHint, setShowHint] = useState(false);
     // State untuk menyimpan jawaban sementara untuk setiap soal
@@ -28,13 +28,13 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
         const finalAnswers: QuizAnswer[] = [];
         config.questions.forEach((question, index) => {
             const selectedAnswer = tempAnswers.get(index);
-            const isCorrect = selectedAnswer === question.correctAnswer;
+            const isCorrect = selectedAnswer !== undefined && selectedAnswer !== null && selectedAnswer === question.correctAnswer;
             const answer: QuizAnswer = {
                 questionId: question.id,
                 selectedAnswer: selectedAnswer ?? -1,
                 isCorrect,
                 timeSpent: 0,
-                pointsEarned: question.points ? (isCorrect ? question.points : 0) : undefined
+                pointsEarned: question.points ? (isCorrect ? question.points : 0) : (isCorrect ? 10 : 0)
             };
             finalAnswers.push(answer);
         });
@@ -80,7 +80,7 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
         const timer = setInterval(() => {
             setTimeRemaining((prev) => {
                 if (prev <= 1) {
-                    setState('completed');
+                    finishQuiz();
                     return 0;
                 }
                 return prev - 1;
@@ -88,7 +88,7 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [state]);
+    }, [state, finishQuiz]);
 
     // Question countdown timer effect
     useEffect(() => {
@@ -315,12 +315,20 @@ export function QuizGame({ config, onComplete, onExit }: QuizGameProps) {
                         <div className="flex items-start justify-between mb-6">
                             <div className="flex-1">
                                 <div className="flex items-center space-x-2 mb-4">
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                        {currentQuestion.category}
-                                    </span>
-                                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                        {currentQuestion.difficulty}
-                                    </span>
+                                    {currentQuestion.category && (
+                                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                            {currentQuestion.category}
+                                        </span>
+                                    )}
+                                    {currentQuestion.difficulty && (
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                            currentQuestion.difficulty === 'mudah' ? 'bg-green-100 text-green-800' :
+                                            currentQuestion.difficulty === 'menengah' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-red-100 text-red-800'
+                                        }`}>
+                                            {currentQuestion.difficulty}
+                                        </span>
+                                    )}
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-900 mb-4 leading-relaxed">
                                     {currentQuestion.question}

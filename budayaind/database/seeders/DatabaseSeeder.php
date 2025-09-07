@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             TicketSeeder::class,
             OrderSeeder::class,
             CulturalSiteSeeder::class,
+            QuizQuestionsSeeder::class,
+
         ]);
     }
 }

@@ -14,16 +14,14 @@ use App\Http\Controllers\Seller\EarningsController;
 use App\Http\Controllers\Seller\WithdrawalController;
 use App\Http\Controllers\Admin\SellerRequestController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController; // ADD THIS
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\Admin\CulturalSiteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
-
-Route::get('/map', function () {
-    return Inertia::render('map');
-})->name('map');
 
 // Public ticket routes (no auth required) - BROWSE TICKETS
 Route::get('/tickets', [CustomerTicketController::class, 'index'])->name('tickets.index');
@@ -157,7 +155,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::patch('/withdrawals/{withdrawal}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
     Route::patch('/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
     Route::patch('/withdrawals/{withdrawal}/complete', [\App\Http\Controllers\Admin\WithdrawalController::class, 'complete'])->name('withdrawals.complete');
+
+    // Cultural Sites Routes
+    Route::resource('cultural-sites', CulturalSiteController::class);
+    Route::patch('cultural-sites/{culturalSite}/toggle-status', [CulturalSiteController::class, 'toggleStatus'])
+        ->name('cultural-sites.toggle-status');
 });
+
+// Cultural Sites Routes (Public)
+Route::get('/map', [MapController::class, 'index'])->name('map');
+Route::get('/cultural-sites/{slug}', [MapController::class, 'show'])->name('cultural-sites.show');
 
 // Test webhook route (remove after testing)
 Route::post('/test-webhook/{orderNumber}', function ($orderNumber) {
@@ -252,3 +259,12 @@ Route::prefix('api/quiz')->group(function () {
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/settings.php';
+
+// Public Cultural Sites Routes
+Route::get('/cultural-sites', [CulturalSiteController::class, 'publicIndex'])
+    ->name('cultural-sites.index');
+
+Route::get('/cultural-sites/{culturalSite:slug}', [CulturalSiteController::class, 'publicShow'])
+    ->name('cultural-sites.show');
+
+// Admin routes

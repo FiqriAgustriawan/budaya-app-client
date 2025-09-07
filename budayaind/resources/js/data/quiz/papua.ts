@@ -9,7 +9,7 @@ export const papuaQuiz: QuizConfig = {
   passingScore: 70,
   theme: {
     primaryColor: '#15803D', // Forest green
-    secondaryColor: '#F97316', // Orange
+    secondaryColor: '#F97316', // Orangew
     backgroundColor: 'linear-gradient(135deg, #064E3B 0%, #15803D 50%, #F97316 100%)',
     backgroundImage: '/images/papua-pattern.png',
     icon: '🦅',

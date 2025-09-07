@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\CulturalSite;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -75,7 +75,7 @@ class CulturalSiteController extends Controller
   public function publicShow(CulturalSite $culturalSite)
   {
     // Add debugging
-    \Log::info('Cultural Site Found:', [
+    Log::info('Cultural Site Found:', [
         'id' => $culturalSite->id,
         'name' => $culturalSite->name,
         'slug' => $culturalSite->slug,

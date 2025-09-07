@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\CulturalSite;
 use App\Models\Order;
 use App\Models\Ticket;
 use App\Models\User;
@@ -18,7 +19,9 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             TicketSeeder::class,
             OrderSeeder::class,
+            CulturalSiteSeeder::class,
             QuizQuestionsSeeder::class,
+
         ]);
     }
 }

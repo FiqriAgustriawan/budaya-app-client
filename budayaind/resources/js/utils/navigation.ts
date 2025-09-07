@@ -1,6 +1,7 @@
 import { type NavItem } from '@/types';
 import {
     BarChart3,
+    BookOpen,
     DollarSign,
     Heart,
     LayoutGrid,
@@ -35,6 +36,11 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     title: 'Seller Requests',
                     href: '/admin/seller-requests',
                     icon: UserCheck,
+                },
+                {
+                    title: 'Atur Soal Quiz',
+                    href: '/admin/quiz',
+                    icon: BookOpen,
                 },
                 {
                     title: 'Withdrawals',
@@ -125,20 +131,26 @@ export const getDashboardUrl = (role: string): string => {
 };
 
 // Helper function untuk mendapatkan badge count (opsional)
-export const getNavigationBadges = (role: string, stats?: any): Record<string, number> => {
+interface NavigationStats {
+    pending_withdrawals?: number;
+    pending_seller_requests?: number;
+    cart_items?: number;
+}
+
+export const getNavigationBadges = (role: string, stats?: NavigationStats): Record<string, number> => {
     const badges: Record<string, number> = {};
 
     if (role === 'admin' && stats) {
-        if (stats.pending_withdrawals > 0) {
+        if (stats.pending_withdrawals && stats.pending_withdrawals > 0) {
             badges['/admin/withdrawals'] = stats.pending_withdrawals;
         }
-        if (stats.pending_seller_requests > 0) {
+        if (stats.pending_seller_requests && stats.pending_seller_requests > 0) {
             badges['/admin/seller-requests'] = stats.pending_seller_requests;
         }
     }
 
     if (role === 'customer' && stats) {
-        if (stats.cart_items > 0) {
+        if (stats.cart_items && stats.cart_items > 0) {
             badges['/customer/cart'] = stats.cart_items;
         }
     }

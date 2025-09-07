@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { QuizGame } from '@/components/quiz/QuizGame';
-import { indonesiaQuiz } from '@/data/quiz/indonesia';
-import { ArrowLeft, Play, Trophy, Target, CheckCircle, XCircle, RotateCcw, Home, Clock, Flag, Star, Globe, Heart } from 'lucide-react';
+import { useQuizData } from '@/hooks/useQuizData';
+import { ArrowLeft, Play, Trophy, Target, CheckCircle, XCircle, RotateCcw, Home, Clock, Flag, Star, Globe, Heart, Loader } from 'lucide-react';
 import { QuizAnswer } from '@/types/quiz';
 
 interface QuizResults {
@@ -11,6 +11,7 @@ interface QuizResults {
 }
 
 export default function IndonesiaQuiz() {
+    const { quizConfig, loading, error, refetch, refreshQuestions } = useQuizData('indonesia'); // Tanpa limit - ambil semua soal
     const [showGame, setShowGame] = useState(false);
     const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
 
@@ -25,9 +26,51 @@ export default function IndonesiaQuiz() {
         setShowGame(true);
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-red-900 via-red-800 to-white flex items-center justify-center">
+                <div className="text-center text-white">
+                    <Loader className="w-12 h-12 animate-spin mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Memuat Quiz...</h2>
+                    <p className="text-red-200">Sedang mengambil soal quiz dari database</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || !quizConfig) {
+        return (
+            <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-red-900 via-red-800 to-white flex items-center justify-center">
+                <div className="text-center text-white max-w-md mx-auto p-8">
+                    <div className="bg-red-500/20 border border-red-400/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <XCircle className="w-10 h-10 text-red-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">Gagal Memuat Quiz</h2>
+                    <p className="text-red-200 mb-6">{error || 'Tidak dapat memuat soal quiz'}</p>
+                    <div className="flex gap-4 justify-center">
+                        <button
+                            onClick={refetch}
+                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-all duration-200"
+                        >
+                            Coba Lagi
+                        </button>
+                        <Link
+                            href="/public-quiz"
+                            className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg transition-all duration-200"
+                        >
+                            Kembali
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (showGame) {
         return <QuizGame
-            config={indonesiaQuiz}
+            config={quizConfig}
             onExit={() => setShowGame(false)}
             onComplete={handleQuizComplete}
         />;
@@ -35,7 +78,7 @@ export default function IndonesiaQuiz() {
 
     // Quiz Results Screen
     if (quizResults) {
-        const totalQuestions = indonesiaQuiz.questions.length;
+        const totalQuestions = quizConfig.questions.length;
         const correctAnswers = quizResults.answers.filter(answer => answer.isCorrect).length;
         const wrongAnswers = totalQuestions - correctAnswers;
         const percentage = Math.round((correctAnswers / totalQuestions) * 100);
@@ -47,7 +90,7 @@ export default function IndonesiaQuiz() {
 
                 {/* Results Background */}
                 <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-red-900 via-red-800 to-white">
-                    
+
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(220,38,38,0.4)_0%,_transparent_25%)] bg-[length:80px_80px]"></div>
@@ -55,7 +98,7 @@ export default function IndonesiaQuiz() {
 
                     {/* Navigation */}
                     <div className="relative z-10 p-6">
-                        <Link href="/quiz"
+                        <Link href="/public-quiz"
                               className="flex items-center space-x-3 bg-black/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 text-white hover:bg-black/30 transition-all duration-300 group w-fit">
                             <Home size={20} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="font-medium">Kembali ke Quiz</span>
@@ -65,12 +108,12 @@ export default function IndonesiaQuiz() {
                     {/* Results Content */}
                     <div className="relative z-10 px-6 pb-12">
                         <div className="max-w-4xl mx-auto text-center">
-                            
+
                             {/* Result Icon */}
                             <div className="mb-8">
                                 <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 ${
-                                    isPassed 
-                                        ? 'bg-green-500/20 border border-green-400/30' 
+                                    isPassed
+                                        ? 'bg-green-500/20 border border-green-400/30'
                                         : 'bg-red-500/20 border border-red-400/30'
                                 }`}>
                                     {isPassed ? (
@@ -83,8 +126,8 @@ export default function IndonesiaQuiz() {
                                     {isPassed ? 'Selamat!' : 'Coba Lagi!'}
                                 </h1>
                                 <p className="text-xl text-white/80">
-                                    {isPassed 
-                                        ? 'Anda berhasil menguasai budaya Nusantara!' 
+                                    {isPassed
+                                        ? 'Anda berhasil menguasai budaya Nusantara!'
                                         : 'Terus belajar tentang budaya Indonesia!'}
                                 </p>
                             </div>
@@ -119,8 +162,8 @@ export default function IndonesiaQuiz() {
                                         <div className="text-sm text-red-300">Salah</div>
                                     </div>
                                     <div className={`border rounded-xl p-4 ${
-                                        isPassed 
-                                            ? 'bg-green-500/20 border-green-400/30' 
+                                        isPassed
+                                            ? 'bg-green-500/20 border-green-400/30'
                                             : 'bg-red-500/20 border-red-400/30'
                                     }`}>
                                         <div className={`text-2xl font-bold mb-1 ${
@@ -147,7 +190,7 @@ export default function IndonesiaQuiz() {
                                     <span>Ulangi Quiz</span>
                                 </button>
                                 <Link
-                                    href="/quiz"
+                                    href="/public-quiz"
                                     className="flex items-center justify-center space-x-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-3 text-white hover:bg-white/20 transition-all duration-300"
                                 >
                                     <Home size={20} />
@@ -162,7 +205,7 @@ export default function IndonesiaQuiz() {
                                         💡 Tips untuk Skor Lebih Baik
                                     </h3>
                                     <p className="text-blue-200 text-sm">
-                                        Pelajari lebih dalam tentang Pancasila, sejarah kemerdekaan, keragaman suku bangsa, 
+                                        Pelajari lebih dalam tentang Pancasila, sejarah kemerdekaan, keragaman suku bangsa,
                                         bahasa daerah, dan filosofi "Bhinneka Tunggal Ika" sebelum mencoba lagi.
                                     </p>
                                 </div>
@@ -199,7 +242,7 @@ export default function IndonesiaQuiz() {
                 <div className="relative z-10 p-6 lg:p-8">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-8">
-                        <Link href="/quiz"
+                        <Link href="/public-quiz"
                               className="flex items-center space-x-3 bg-black/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 text-white hover:bg-black/30 transition-all duration-300 group">
                             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="font-medium">Kembali</span>
@@ -230,10 +273,10 @@ export default function IndonesiaQuiz() {
                                 <Flag size={36} className="text-white" />
                             </div>
                             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                                {indonesiaQuiz.name}
+                                {quizConfig.name}
                             </h2>
                             <p className="text-xl text-red-100 max-w-2xl mx-auto leading-relaxed">
-                                {indonesiaQuiz.description}
+                                {quizConfig.description}
                             </p>
                         </div>
 
@@ -266,7 +309,7 @@ export default function IndonesiaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Clock size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-red-800 mb-1">{indonesiaQuiz.timeLimit}</div>
+                                        <div className="text-3xl font-bold text-red-800 mb-1">{quizConfig.timeLimit}</div>
                                         <div className="text-sm font-medium text-red-600">Menit</div>
                                     </div>
 
@@ -274,7 +317,7 @@ export default function IndonesiaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Globe size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-blue-800 mb-1">{indonesiaQuiz.questions.length}</div>
+                                        <div className="text-3xl font-bold text-blue-800 mb-1">{quizConfig.questions.length}</div>
                                         <div className="text-sm font-medium text-blue-600">Pertanyaan</div>
                                     </div>
 
@@ -282,7 +325,7 @@ export default function IndonesiaQuiz() {
                                         <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <Trophy size={24} className="text-white" />
                                         </div>
-                                        <div className="text-3xl font-bold text-yellow-800 mb-1">{indonesiaQuiz.passingScore}%</div>
+                                        <div className="text-3xl font-bold text-yellow-800 mb-1">{quizConfig.passingScore}%</div>
                                         <div className="text-sm font-medium text-yellow-600">Nilai Lulus</div>
                                     </div>
                                 </div>

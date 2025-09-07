@@ -1,4 +1,18 @@
 export interface QuizQuestion {
+    id: number;
+    question: string;
+    option_a: string;
+    option_b: string;
+    option_c: string;
+    option_d: string;
+    correct_answer: 'A' | 'B' | 'C' | 'D';
+    island: string;
+    created_at: string;
+    updated_at: string;
+}
+
+// Legacy interface - keeping for backward compatibility
+export interface LegacyQuizQuestion {
     id: string;
     question: string;
     options: string[];
@@ -12,6 +26,20 @@ export interface QuizQuestion {
     hint?: string;
     points?: number;
     timeLimit?: number; // in seconds
+}
+
+// Quiz Game Question Interface for QuizConfig
+export interface GameQuizQuestion {
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation?: string;
+    difficulty?: 'mudah' | 'menengah' | 'sulit';
+    category?: string;
+    hint?: string;
+    points?: number;
+    timeLimit?: number;
 }
 
 export interface QuizAnswer {
@@ -39,7 +67,7 @@ export interface QuizConfig {
     name: string;
     province: string;
     description: string;
-    questions: QuizQuestion[];
+    questions: GameQuizQuestion[];
     timeLimit: number; // total time in minutes
     passingScore: number; // percentage needed to pass
     theme: {

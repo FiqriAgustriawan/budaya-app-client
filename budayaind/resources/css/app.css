@@ -7,6 +7,130 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Quiz Animations */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+    }
+}
+
+@keyframes quiz-appear {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-quiz-appear {
+    animation: quiz-appear 0.5s ease-out forwards;
+}
+
+.delay-1000 {
+    animation-delay: 1s;
+}
+
+.delay-2000 {
+    animation-delay: 2s;
+}
+
+.delay-500 {
+    animation-delay: 0.5s;
+}
+
+/* Pattern Overlay Effects */
+.pattern-overlay {
+    position: relative;
+}
+
+.pattern-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: 200px;
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.pattern-batik::before {
+    background-image: url('/images/batik-pattern.png');
+}
+
+.pattern-prada::before {
+    background-image: url('/images/prada-pattern.png');
+}
+
+.pattern-songket::before {
+    background-image: url('/images/songket-pattern.png');
+}
+
+/* Quiz Question Transitions */
+.quiz-question {
+    transition: all 0.3s ease-in-out;
+}
+
+.quiz-question.entering {
+    opacity: 0;
+    transform: translateX(100px);
+}
+
+.quiz-question.entered {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.quiz-question.exiting {
+    opacity: 0;
+    transform: translateX(-100px);
+}
+
+/* Quiz Option Hover Effects */
+.quiz-option {
+    position: relative;
+    overflow: hidden;
+}
+
+.quiz-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.quiz-option:hover::before {
+    left: 100%;
+}
+
 @theme {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';

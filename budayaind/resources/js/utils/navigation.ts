@@ -10,9 +10,10 @@ import {
     ShoppingCart,
     Ticket,
     User,
-    UserCheck,
+    UserCheck, 
     Users,
     Wallet,
+     MapPin
 } from 'lucide-react';
 
 export const getNavigationByRole = (role: string): NavItem[] => {
@@ -24,11 +25,12 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     href: '/admin/dashboard', // Fixed href untuk admin dashboard
                     icon: LayoutGrid,
                 },
-                {
-                    title: 'Users',
-                    href: '/admin/users',
-                    icon: Users,
-                },
+               {
+                            title: 'Cultural Sites', // Add this
+                            href: '/admin/cultural-sites',
+                            icon: MapPin,
+                        },
+         
                 {
                     title: 'Seller Requests',
                     href: '/admin/seller-requests',
@@ -39,16 +41,8 @@ export const getNavigationByRole = (role: string): NavItem[] => {
                     href: '/admin/withdrawals',
                     icon: Wallet,
                 },
-                {
-                    title: 'Reports',
-                    href: '/admin/reports',
-                    icon: BarChart3,
-                },
-                {
-                    title: 'Settings',
-                    href: '/admin/settings',
-                    icon: Settings,
-                },
+          
+             
             ];
 
         case 'seller':

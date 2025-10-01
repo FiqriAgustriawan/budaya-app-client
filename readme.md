@@ -1,4 +1,4 @@
-# 🌟 **BudayaInd - Platform Wisata Budaya Indonesia**
+# 🌟 **BudayaInd - Platform Wisata Budaya Indonesihha**
 
 > **Platform digital modern untuk eksplorasi dan pemesanan wisata budaya Indonesia**  
 > Dibangun dengan **Laravel 12 + Inertia.js + React** untuk pengalaman pengguna yang optimal

@@ -361,20 +361,13 @@ function WelcomeContent() {
                         {/* Navigation Links */}
                         <div className="hidden md:flex items-center space-x-8">
                             <Link
-                                href="/quiz"
+                                href="/public-quiz"
                                 className="px-4 py-2 font-medium transition-colors duration-300 rounded-xl flex items-center space-x-2 text-gray-200 hover:text-[#a4773e] hover:bg-white/10"
                             >
                                 <Brain className="w-4 h-4" />
                                 <span>Kuis Budaya</span>
                             </Link>
 
-                            <Link
-                                href="/cultural-sites"
-                                className="px-4 py-2 font-medium transition-colors duration-300 rounded-xl flex items-center space-x-2 text-gray-200 hover:text-[#a4773e] hover:bg-white/10"
-                            >
-                                <Globe className="w-4 h-4" />
-                                <span>Situs Budaya</span>
-                            </Link>
 
                             <Link
                                 href="/tickets"
